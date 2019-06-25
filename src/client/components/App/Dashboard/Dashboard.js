@@ -47,7 +47,7 @@ export class Dashboard extends Component {
     if (loading === false && permissions.length > 0)
       content = (
         <div className="container container-dashboard">
-          <h1>Welcome to Link2Settle {this.props.user.username}</h1>
+          <h1>Welcome to iAuto {this.props.user.username}</h1>
 
           <div className="d-md-flex flex-row-reverse">
 

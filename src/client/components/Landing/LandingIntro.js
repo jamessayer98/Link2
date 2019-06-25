@@ -7,16 +7,13 @@ export default function LandingIntro() {
       <div className="signin-box">
         <h2 className="slim-logo">
           <Link to="/">
-            Link2Settle<span>.</span>
+            iAutoData<span>.</span>
           </Link>
         </h2>
 
         <p>
-          We are excited to launch our new product Link2Settle immigration. After
-          working closely with different non-for-profit agencies helping
-          immigrants, we know that Link2Settle solves a major problem. We hope to
-          simplify and automate NFP core processes so that they can spend more
-          time with their clients.
+          The only platform that helps you collect, analyze and measure the impact
+          of all your data.
         </p>
 
         <p>Contact us for a free demo or create an account.</p>
