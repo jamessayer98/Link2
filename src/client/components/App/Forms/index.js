@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import { connect } from 'react-redux'
+import { connect } from 'react-redux';
+import Breadcrumb from 'react-bootstrap/Breadcrumb'
 
 class FormsPage extends Component {
   copyToClipboard = str => {
@@ -19,8 +20,8 @@ class FormsPage extends Component {
     });
   };
 
-    editForm = event => {
-        let formName = event.target.getAttribute('form_name');
+  editForm = event => {
+    let formName = event.target.getAttribute('form_name');
         this.props.history.push({
             pathname: '/forms/all-forms/' + formName,
             state: {edit: 'true'}
@@ -31,6 +32,7 @@ class FormsPage extends Component {
     let formName = event.target.getAttribute('form_name');
     let url = window.location.protocol + "//" + window.location.host + '/forms/all-forms/' + formName;
     this.copyToClipboard(url);
+    localStorage.setItem('edit', 'true');
     alert('Copied the form URL to Clipboard')
   };
 
@@ -66,12 +68,18 @@ class FormsPage extends Component {
     const isAllowedToView = (userRole === "admin" || userRole === "staff" || userRole === "partner");
     const isAllowedToShare = (userRole === "admin" || userRole === "staff" || userRole === "partner");
     const isAllowedToSubmission = (userRole === "partner");
+    const isAllowedToForm = (userRole === "partner");
 
     return (
       <div className="slim-mainpanel">
         <div className="container">
-          <div className="slim-pageheader">
-            <ol className="breadcrumb slim-breadcrumb" />
+          <div className='slim-pageheader' style={{paddingBottom: 0}}>
+            <Breadcrumb>
+              <Breadcrumb.Item href="dashboard">Home</Breadcrumb.Item>
+              <Breadcrumb.Item active>Forms</Breadcrumb.Item>
+            </Breadcrumb>
+          </div>
+          <div className="slim-pageheader" style={{ paddingTop: 0, display: "block" }}>
             <h6 className="slim-pagetitle">All Forms</h6>
           </div>
 
@@ -95,28 +103,31 @@ class FormsPage extends Component {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
+
+                  { !isAllowedToForm && <tr>
                     <td>1</td>
-                    <td> Client Action Plan</td>
-                    {/* <td className="tx-12">{`${HOST_URL}/forms/all-forms/1`}</td> */}
+                    <td>Registration</td>
                     <td>Jan 09, 2018 12:00 AM</td>
                     <td>Jan 09, 2018 12:00 AM</td>
+                    {/* <td className="tx-12">{`${HOST_URL}/forms/all-forms/4`}</td> */}
+                    {/* <td className="tx-center"> </td> */}
                     <td className="tx-right">
-                      <button type="button" className="btn btn-secondary btn-sm" disabled={!isAllowedToView} onClick={this.viewForm} form_name='client-action' >View</button>
+                      <button type="button" className="btn btn-secondary btn-sm" disabled={!isAllowedToView} onClick={this.viewForm} form_name='registration' >View</button>
                     </td>
                     <td className="tx-right">
                         <button type="button" className="btn btn-secondary btn-sm" disabled={!isAllowedToEdit}
-                                onClick={this.editForm} form_name='client-action'>Edit
+                                onClick={this.editForm} form_name='registration'>Edit
                         </button>
                     </td>
                     <td className="tx-right">
-                      <button type="button" className="btn btn-secondary btn-sm" disabled={!isAllowedToShare} onClick={this.shareForm} form_name='client-action' >Share</button>
+                      <button type="button" className="btn btn-secondary btn-sm" disabled={!isAllowedToShare} onClick={this.shareForm} form_name='registration' >Share</button>
                     </td>
                     <td className="tx-right">
-                      <button type="button" className="btn btn-primary btn-sm" disabled={isAllowedToSubmission} onClick={this.viewSubmission} form_name='client-action'>Submissions</button>
+                      <button type="button" className="btn btn-primary btn-sm" disabled={isAllowedToSubmission} onClick={this.viewSubmission} form_name='registration'>Submissions</button>
                     </td>
                   </tr>
-                  <tr>
+                }
+                  {!isAllowedToForm && <tr>
                     <td>2</td>
                     <td> IAR Assessment</td>
                     <td>Jan 09, 2018 12:00 AM</td>
@@ -137,9 +148,30 @@ class FormsPage extends Component {
                     <td className="tx-right">
                       <button type="button" className="btn btn-primary btn-sm" disabled={isAllowedToSubmission} onClick={this.viewSubmission} form_name='iar-assessment' >Submissions</button>
                     </td>
-                  </tr>
-                  <tr>
+                  </tr>}
+                  {!isAllowedToForm && <tr>
                     <td>3</td>
+                    <td> Client Action Plan</td>
+                    {/* <td className="tx-12">{`${HOST_URL}/forms/all-forms/1`}</td> */}
+                    <td>Jan 09, 2018 12:00 AM</td>
+                    <td>Jan 09, 2018 12:00 AM</td>
+                    <td className="tx-right">
+                      <button type="button" className="btn btn-secondary btn-sm" disabled={!isAllowedToView} onClick={this.viewForm} form_name='client-action' >View</button>
+                    </td>
+                    <td className="tx-right">
+                        <button type="button" className="btn btn-secondary btn-sm" disabled={!isAllowedToEdit}
+                                onClick={this.editForm} form_name='client-action'>Edit
+                        </button>
+                    </td>
+                    <td className="tx-right">
+                      <button type="button" className="btn btn-secondary btn-sm" disabled={!isAllowedToShare} onClick={this.shareForm} form_name='client-action' >Share</button>
+                    </td>
+                    <td className="tx-right">
+                      <button type="button" className="btn btn-primary btn-sm" disabled={isAllowedToSubmission} onClick={this.viewSubmission} form_name='client-action'>Submissions</button>
+                    </td>
+                  </tr>}
+                  <tr>
+                    {isAllowedToForm ? <td>1</td> : <td>4</td>}
                     <td> FCRP Loan</td>
                     <td>Jan 09, 2018 12:00 AM</td>
                     <td>Jan 09, 2018 12:00 AM</td>
@@ -149,7 +181,7 @@ class FormsPage extends Component {
                       <button type="button" className="btn btn-secondary btn-sm" disabled={!isAllowedToView} onClick={this.viewForm} form_name='fcrp-loan' >View</button>
                     </td>
                     <td className="tx-right">
-                        <button type="button" className="btn btn-secondary btn-sm" disabled={!isAllowedToEdit}
+                        <button type="button" className="btn btn-secondary btn-sm"
                                 onClick={this.editForm} form_name='fcrp-loan'>Edit
                         </button>
                     </td>
@@ -158,28 +190,6 @@ class FormsPage extends Component {
                     </td>
                     <td className="tx-right">
                       <button type="button" className="btn btn-primary btn-sm" disabled={isAllowedToSubmission} onClick={this.viewSubmission} form_name='fcrp-loan'>Submissions</button>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>4</td>
-                    <td>Registration</td>
-                    <td>Jan 09, 2018 12:00 AM</td>
-                    <td>Jan 09, 2018 12:00 AM</td>
-                    {/* <td className="tx-12">{`${HOST_URL}/forms/all-forms/4`}</td> */}
-                    {/* <td className="tx-center"> </td> */}
-                    <td className="tx-right">
-                      <button type="button" className="btn btn-secondary btn-sm" disabled={!isAllowedToView} onClick={this.viewForm} form_name='registration' >View</button>
-                    </td>
-                    <td className="tx-right">
-                        <button type="button" className="btn btn-secondary btn-sm" disabled={!isAllowedToEdit}
-                                onClick={this.editForm} form_name='registration'>Edit
-                        </button>
-                    </td>
-                    <td className="tx-right">
-                      <button type="button" className="btn btn-secondary btn-sm" disabled={!isAllowedToShare} onClick={this.shareForm} form_name='registration' >Share</button>
-                    </td>
-                    <td className="tx-right">
-                      <button type="button" className="btn btn-primary btn-sm" disabled={isAllowedToSubmission} onClick={this.viewSubmission} form_name='registration'>Submissions</button>
                     </td>
                   </tr>
                   {/* <tr>

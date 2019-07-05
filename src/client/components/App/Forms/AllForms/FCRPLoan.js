@@ -3,21 +3,47 @@ import {connect} from 'react-redux'
 import {Prompt} from 'react-router-dom'
 import axios from 'axios';
 import {API_URL} from '../../../../actions/types';
+import moment from 'moment';
+import Breadcrumb from 'react-bootstrap/Breadcrumb'
+
+import Datepicker from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css";
+let isEditableValidation = false;
 
 class FCRPLoan extends Component {
 
     constructor(props) {
         super(props)
-        this.state = {isBlocking: true}
+        this.state = {
+            isBlocking: true,
+            startDate: new Date(),
+            isEditable: false,
+            fromDate: new Date(),
+            toDate: new Date()
+        }
+        this.handleChange = this.handleChange.bind(this);
+        this.handleFromChange = this.handleFromChange.bind(this);
     }
 
     disableBlocking() {
         this.setState({isBlocking: false})
     }
 
+    handleChange(date) {
+        this.setState({
+            startDate: date
+        });
+    }
+
+    handleFromChange(date) {
+      this.setState({
+          fromDate: date
+      });
+    }
+
     componentDidMount() {
         const self = this;
-        const isEditable = (this.props.location.state.edit && this.props.location.state.edit === "true");
+        const isEditable = true;
         window.download2 = this.download
         window.$('#wizard6').steps({
             headerTag: 'h3',
@@ -26,12 +52,54 @@ class FCRPLoan extends Component {
             titleTemplate: '<span class="number">#index#</span> <span class="title">#title#</span>',
             cssClass: 'wizard wizard-style-2',
             onStepChanging: function (event, currentIndex, newIndex) {
+                if (currentIndex == 2) {
+                    document.getElementById("fcrpHeader").innerHTML = "Do not fill, this section is for assessors only";
+                } else {
+                    document.getElementById("fcrpHeader").innerHTML = "Please fill out the following information.";
+                }
+                let content = {
+                    salutation: window.$('#salutation').val(),
+                    firstName: window.$('#firstName').val(),
+                    lastName: window.$('#lastName').val(),
+                    emailAddress: window.$('#emailAddress').val(),
+                    countryOfOrigin: window.$('#countryOfOrigin').val(),
+                    primaryPhoneNumber: window.$('#primaryPhoneNumber').val(),
+                    secondaryPhoneNumber: window.$('#secondaryPhoneNumber').val(),
+                    birthDate: window.$('#birthDate').val(),
+                    confirmEmailAddress: window.$('#confirmEmailAddress').val()
+                }
+                if (isEditableValidation) {
+                    if (content.salutation.length == 0) window.$('#salutation').addClass("has-error");
+                    else window.$('#salutation').removeClass("has-error");
+                    if (content.firstName.length == 0) window.$('#firstName').addClass("has-error");
+                    else window.$('#firstName').removeClass("has-error");
+                    if (content.lastName.length == 0) window.$('#lastName').addClass("has-error");
+                    else window.$('#lastName').removeClass("has-error");
+                    if (content.emailAddress.length == 0) window.$('#emailAddress').addClass("has-error");
+                    else window.$('#emailAddress').removeClass("has-error");
+                    if (content.countryOfOrigin.length == 0) window.$('#countryOfOrigin').addClass("has-error");
+                    else window.$('#countryOfOrigin').removeClass("has-error");
+                    if (content.primaryPhoneNumber.length == 0) window.$('#primaryPhoneNumber').addClass("has-error");
+                    else window.$('#primaryPhoneNumber').removeClass("has-error");
+                    if (content.secondaryPhoneNumber.length == 0) window.$('#secondaryPhoneNumber').addClass("has-error");
+                    else window.$('#secondaryPhoneNumber').removeClass("has-error");
+                    if (content.birthDate.length == 0) window.$('#birthDate').addClass("has-error");
+                    else window.$('#birthDate').removeClass("has-error");
+                    if (content.confirmEmailAddress.length == 0) window.$('#confirmEmailAddress').addClass("has-error");
+                    else if (content.confirmEmailAddress != content.emailAddress) window.$('#confirmEmailAddress').addClass("has-error");
+                    else window.$('#confirmEmailAddress').removeClass("has-error");
+                    if (content.firstName.length > 0 && content.lastName.length > 0 && content.emailAddress.length > 0 && content.countryOfOrigin.length > 0 && content.primaryPhoneNumber.length > 0 && content.secondaryPhoneNumber.length > 0 && content.birthDate.length > 0 && content.emailAddress == content.confirmEmailAddress) {
+                        return true
+                    }
+                    else {
+                        return false
+                    }
+                }
                 return true
             },
             onFinishing: function (event, currentIndex) {
                 return true
             },
-
             onFinished: async function (event, currentIndex) {
                 if (isEditable) {
                     await self.disableBlocking()
@@ -59,7 +127,6 @@ class FCRPLoan extends Component {
                         nativeLanguage: window.$('#nativeLanguage').val(),
                         maritalStatus: window.$('#maritalStatus').val(),
                         maritalStatus_other: window.$('#maritalStatus_other').val(),
-
                         foreignBornCanadian: window.$('#foreignBornCanadian').val(),
                         landingDate: window.$('#landingDate').val(),
                         yearOfCitizenship: window.$('#yearOfCitizenship').val(),
@@ -68,7 +135,6 @@ class FCRPLoan extends Component {
                         howDidYouHearAboutUs: window.$('#howDidYouHearAboutUs').val(),
                         landingDocumentString: window.$('#landingDocumentString').val(),
                         landingDocumentName: window.$('#landingDocumentName').val(),
-
                         occupation: window.$('#occupation').val(),
                         primaryOccupation: window.$('#primaryOccupation').val(),
                         regulatedProfession_yes: window.$('#regulatedProfession_yes').prop("checked"),
@@ -95,9 +161,45 @@ class FCRPLoan extends Component {
                         englishLanguageAssessment_reading: window.$('#englishLanguageAssessment_reading').val(),
                         englishLanguageAssessment_writing: window.$('#englishLanguageAssessment_writing').val(),
                         englishLanguageAssessment_assessmentDate: window.$('#englishLanguageAssessment_assessmentDate').val(),
-
+                        firstWorldSkills: window.$('#firstWorldSkills').prop("checked"),
+                        firstLASSA: window.$('#firstLASSA').prop("checked"),
+                        firstOCISO: window.$('#firstOCISO').prop("checked"),
+                        firstOCLFDate: window.$('#firstOCLFDate').prop("checked"),
+                        firstWorldSkillsReferred: window.$('#firstWorldSkillsReferred').prop("checked"),
+                        firstLASSAReferred: window.$('#firstLASSAReferred').prop("checked"),
+                        firstOCISOReferred: window.$('#firstOCISOReferred').prop("checked"),
+                        firstOCLFReferred: window.$('#firstOCLFReferred').prop("checked"),
+                        firstOtherReferred: window.$('#firstOtherReferred').prop("checked"),
+                        licensingToActionTab: window.$('#licensingToActionTab').prop("checked"),
+                        otherToActionTab: window.$('#otherToActionTab').prop("checked"),
+                        otherToActionTabInputLASSA: window.$('#OtherToActionTabInputLASSA').val(),
+                        sectorSpeicalist: window.$('#sectorSpeicalist').prop("checked"),
+                        employmentSupport: window.$('#employmentSupport').prop("checked"),
+                        intakeAssessment: window.$('#intakeAssessment').prop("checked"),
+                        otherToActionTabWorld: window.$('#otherToActionTabWorld').prop("checked"),
+                        otherToActionTabInputWorld: window.$('#otherToActionTabInputWorld').val(),
+                        mentorShip: window.$('#mentorShip').prop("checked"),
+                        otherToActionTabOCISO: window.$('#otherToActionTabOCISO').prop("checked"),
+                        otherToActionTabInputOCISO: window.$('#otherToActionTabInputOCISO').val(),
+                        financialEmpowermentTraining: window.$('#financialEmpowermentTraining').prop("checked"),
+                        otherToActionTabOCLF: window.$('#otherToActionTabOCLF').prop("checked"),
+                        otherToActionTabInputOCLF: window.$('#otherToActionTabInputOCLF').val(),
+                        remark: window.$('#remark').val(),
+                        signature: window.$('#signature').val(),
+                        signDate: window.$('#signDate').val(),
+                        consentYes: window.$('#consentYes').val(),
+                        consentNo: window.$('#consentNo').val(),
+                        otherSignature: window.$('#otherSignature').val(),
+                        othersignDate: window.$('#othersignDate').val(),
+                        other: window.$('#other').prop("checked"),
+                        tranning: window.$('#tranning').prop("checked"),
+                        practiceMentorship: window.$('#practiceMentorship').prop("checked"),
+                        licesing: window.$('#licesing').prop("checked"),
+                        loanAssistance: window.$('#loanAssistance').prop("checked"),
+                        credentialAssessment: window.$('#credentialAssessment').prop("checked"),
+                        credential: window.$('#credential').prop("checked")
                     }
-
+                    console.log(content);
                     try {
                         await axios.post(API_URL + '/api/submissions', content);
                         self.props.history.push({
@@ -116,7 +218,7 @@ class FCRPLoan extends Component {
                     });
                 }
             }
-        })
+        })        
 
         window.$('#landingDocument').change(function (event) {
             var file = window.$('#landingDocument').prop('files')[0];
@@ -130,23 +232,76 @@ class FCRPLoan extends Component {
                 };
             }
         });
+
+        window.$('#englishLanguageAssessment_listening').attr("disabled", "disabled");
+        window.$('#englishLanguageAssessment_speaking').attr("disabled", "disabled");
+        window.$('#englishLanguageAssessment_reading').attr("disabled", "disabled");
+        window.$('#englishLanguageAssessment_writing').attr("disabled", "disabled");
+
+        window.$('#englishLanguageAssessed_no').click(function (event) {
+            window.$('#englishLanguageAssessment_listening').attr("disabled", "disabled");
+            window.$('#englishLanguageAssessment_speaking').attr("disabled", "disabled");
+            window.$('#englishLanguageAssessment_reading').attr("disabled", "disabled");
+            window.$('#englishLanguageAssessment_writing').attr("disabled", "disabled");
+        });
+
+        window.$('#englishLanguageAssessed_yes').click(function (event) {
+            window.$('#englishLanguageAssessment_listening').removeAttr("disabled");
+            window.$('#englishLanguageAssessment_speaking').removeAttr("disabled");
+            window.$('#englishLanguageAssessment_reading').removeAttr("disabled");
+            window.$('#englishLanguageAssessment_writing').removeAttr("disabled");
+        });
+
+        window.$('input[type="date"]').change(function() {
+            this.setAttribute(
+                "data-date",
+                moment(this.value, "YYYY/MM/DD")
+                .format('YYYY/MM/DD')
+            )
+        })
+
+        Date.prototype.toDateInputValue = (function() {
+            var local = new Date(this);
+            local.setMinutes(this.getMinutes() - this.getTimezoneOffset());
+            return local.toJSON().slice(0,10);
+        });
+
+        window.$('input[type="date"]').val(new Date().toDateInputValue());
+        window.$('input[type="date"]').trigger('change');
     }
 
     render() {
-        let {isBlocking} = this.state;
+        let { isBlocking } = this.state;        
         let isEditable = false;
-        if (this.props.location.state.edit && this.props.location.state.edit === "true") {
+        if (!this.props.location.state) {
+            if (localStorage.getItem('edit') === "true") {
+                isEditable = true;
+            }
+        }
+        else if (this.props.location.state.edit && this.props.location.state.edit === "true") {
             isEditable = true;
         }
+        isEditableValidation = isEditable;
+
+        const {permissions} = this.props;
+        const userRole = permissions[0].role;
+        // const isAllowed = (userRole === "admin");
 
         return (
             <div className="slim-mainpanel">
                 <div className="container">
+                    <div className='slim-pageheader' style={{paddingBottom: 0}}>
+                        <Breadcrumb>
+                          <Breadcrumb.Item href="/dashboard">Home</Breadcrumb.Item>
+                          <Breadcrumb.Item href="/forms">Forms</Breadcrumb.Item>
+                          <Breadcrumb.Item active>All Forms</Breadcrumb.Item>
+                          <Breadcrumb.Item active>FCRPLoan</Breadcrumb.Item>
+                        </Breadcrumb>
+                    </div>
                     <div id="google_translate_element"/>
-
                     <div className="section-wrapper mg-t-20">
                         <label className="section-title">FCRP Loan Initiative Intake & Assessment Form</label>
-                        <p className="mg-b-20 mg-sm-b-40">Please fill out the following information. </p>
+                        <p className="mg-b-20 mg-sm-b-40" id="fcrpHeader">Please fill out the following information. </p>
 
                         <form id="immigrationForm" method="post" action="/forms">
                             <Prompt when={isBlocking}
@@ -158,6 +313,126 @@ class FCRPLoan extends Component {
                             <div id="wizard6">
                                 <h3>Client Information</h3>
                                 <section>
+                                    <table className="table table-bordered">
+                                        <tbody>
+                                            <tr>
+                                                <td>
+                                                    Intake Agency:
+                                                </td>
+                                                <td>
+                                                    <div className="form-row">
+                                                        <div className="form-group col-md-4">
+                                                            <label className="custom-control custom-checkbox">
+                                                                <input id="firstWorldSkills"
+                                                                       name="FirstWorldSkills" type="checkbox"
+                                                                       className="custom-control-input" readOnly={!isEditable}
+                                                                       disabled={!isEditable}
+                                                                />
+                                                                <span className="custom-control-label">World Skills</span>
+                                                            </label>
+                                                        </div>
+                                                        <div className="form-group col-md-3">
+                                                            <label className="custom-control custom-checkbox">
+                                                                <input id="firstLASSA"
+                                                                       name="FirstLASSA" type="checkbox"
+                                                                       className="custom-control-input" readOnly={!isEditable}
+                                                                       disabled={!isEditable}
+                                                                />
+                                                                <span className="custom-control-label">LASSA</span>
+                                                            </label>
+                                                        </div>
+                                                        <div className="form-group col-md-3">
+                                                            <label className="custom-control custom-checkbox">
+                                                                <input id="firstOCISO"
+                                                                       name="FirstOCISO" type="checkbox"
+                                                                       className="custom-control-input" readOnly={!isEditable}
+                                                                       disabled={!isEditable}
+                                                                />
+                                                                <span className="custom-control-label">OCISO</span>
+                                                            </label>
+                                                        </div>
+                                                        <div className="form-group col-md-3">
+                                                            <label className="custom-control custom-checkbox">
+                                                                <input id="firstOCLFDate"
+                                                                       name="FirstOCLFDate" type="checkbox"
+                                                                       className="custom-control-input" readOnly={!isEditable}
+                                                                       disabled={!isEditable}
+                                                                />
+                                                                <span className="custom-control-label">OCLF Date</span>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>of assessment</td>
+                                                <td></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Assessor</td>
+                                                <td></td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    Referred By
+                                                </td>
+                                                <td>
+                                                    <div className="form-row">
+                                                        <div className="form-group col-md-4">
+                                                            <label className="custom-control custom-checkbox">
+                                                                <input id="firstWorldSkillsReferred"
+                                                                       name="FirstWorldSkillsReferred" type="checkbox"
+                                                                       className="custom-control-input" readOnly={!isEditable}
+                                                                       disabled={!isEditable}
+                                                                />
+                                                                <span className="custom-control-label">World Skills</span>
+                                                            </label>
+                                                        </div>
+                                                        <div className="form-group col-md-3">
+                                                            <label className="custom-control custom-checkbox">
+                                                                <input id="firstLASSAReferred"
+                                                                       name="FirstLASSAReferred" type="checkbox"
+                                                                       className="custom-control-input" readOnly={!isEditable}
+                                                                       disabled={!isEditable}
+                                                                />
+                                                                <span className="custom-control-label">LASSA</span>
+                                                            </label>
+                                                        </div>
+                                                        <div className="form-group col-md-3">
+                                                            <label className="custom-control custom-checkbox">
+                                                                <input id="firstOCISOReferred"
+                                                                       name="FirstOCISOReferred" type="checkbox"
+                                                                       className="custom-control-input" readOnly={!isEditable}
+                                                                       disabled={!isEditable}
+                                                                />
+                                                                <span className="custom-control-label">OCISO</span>
+                                                            </label>
+                                                        </div>
+                                                        <div className="form-group col-md-3">
+                                                            <label className="custom-control custom-checkbox">
+                                                                <input id="firstOCLFReferred"
+                                                                       name="FirstOCLFReferred" type="checkbox"
+                                                                       className="custom-control-input" readOnly={!isEditable}
+                                                                       disabled={!isEditable}
+                                                                />
+                                                                <span className="custom-control-label">OCLF</span>
+                                                            </label>
+                                                        </div>
+                                                        <div className="form-group col-md-3">
+                                                            <label className="custom-control custom-checkbox">
+                                                                <input id="firstOtherReferred"
+                                                                       name="FirstOtherReferred" type="checkbox"
+                                                                       className="custom-control-input" readOnly={!isEditable}
+                                                                       disabled={!isEditable}
+                                                                />
+                                                                <span className="custom-control-label">Other</span>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                     <div className="form-row">
                                         <div className="form-group col-md-1">
                                             <label htmlFor="salutation">Salutation</label>
@@ -295,7 +570,6 @@ class FCRPLoan extends Component {
                                             </select>
                                         </div>
                                     </div>
-
                                     <div className="form-row">
                                         <div className="form-group col-md-6">
                                             <label htmlFor="emailAddress">Email address</label>
@@ -317,24 +591,25 @@ class FCRPLoan extends Component {
                                                    }}/>
                                         </div>
                                     </div>
-
-
                                     <div className="form-group">
-                                        <label htmlFor="birthDate">Date of Birth</label>
+                                        <label htmlFor="birthDate">
+                                            Date of Birth
+                                        </label>
                                         <div className="input-group">
                                             <div className="input-group-prepend">
                                                 <div className="input-group-text">
                                                     <i className="fa fa-calendar tx-16 lh-0 op-6"></i>
                                                 </div>
                                             </div>
-                                            <input name="birthDate" id="birthDate" type="text" className="form-control"
-                                                   placeholder="MM/DD/YYYY" readOnly={!isEditable}
-                                                   disabled={!isEditable}
-                                                   onChange={(e) => {
-                                                   }}/>
+                                            <input name="birthDate" 
+                                                id="birthDate" type="date"
+                                                className="form-control"
+                                                date-date=""
+                                                readOnly={!isEditable}
+                                                disabled={!isEditable}
+                                            />
                                         </div>
                                     </div>
-
                                     <div className="form-row">
                                         <div className="form-group col-md-2">
                                             <label htmlFor="gender">Gender</label>
@@ -824,8 +1099,9 @@ class FCRPLoan extends Component {
                                                         <i className="fa fa-calendar tx-16 lh-0 op-6"></i>
                                                     </div>
                                                 </div>
-                                                <input name="landingDate" id="landingDate" type="text"
-                                                       className="form-control" placeholder="MM/DD/YYYY"
+                                                <input name="landingDate" id="landingDate" type="date"
+                                                       className="form-control"
+                                                       date-date=""
                                                        readOnly={!isEditable}
                                                        disabled={!isEditable}
                                                        onChange={(e) => {
@@ -1059,19 +1335,62 @@ class FCRPLoan extends Component {
                                             <label htmlFor="helpRequestedDomain">
                                                 Which of the following do you need help with?
                                             </label>
-                                            <select className="form-control" id="helpRequestedDomain"
-                                                    name="helpRequestedDomain" readOnly={!isEditable}
-                                                    disabled={!isEditable}
-                                                    onChange={(e) => {
-                                                    }}>
-                                                <option value="">--</option>
-                                                <option>Credential Assessment</option>
-                                                <option>Loan Assistance</option>
-                                                <option>Licensing</option>
-                                                <option>Mentorship</option>
-                                                <option>Training</option>
-                                                <option>Other</option>
-                                            </select>
+                                            <div className="form-group">
+                                                <div className="custom-controls-stacked">
+                                                    <label className="custom-control custom-radio">
+                                                        <input id="credentialAssessment"
+                                                               name="practiceCanada" type="radio"
+                                                               className="custom-control-input"
+                                                        />
+                                                        <span className="custom-control-label">Credential Assessment</span>
+                                                    </label>
+                                                </div>
+                                                <div className="custom-controls-stacked">
+                                                    <label className="custom-control custom-radio">
+                                                        <input id="loanAssistance"
+                                                               name="practiceCanada" type="radio"
+                                                               className="custom-control-input"
+                                                        />
+                                                        <span className="custom-control-label">Loan Assistance</span> 
+                                                    </label>  
+                                                </div>
+                                                <div className="custom-controls-stacked">
+                                                    <label className="custom-control custom-radio">
+                                                        <input id="licesing"
+                                                               name="practiceCanada" type="radio"
+                                                               className="custom-control-input"
+                                                        />
+                                                        <span className="custom-control-label">Licensing</span>
+                                                    </label>
+                                                </div>
+                                                <div className="custom-controls-stacked">
+                                                    <label className="custom-control custom-radio">
+                                                        <input id="practiceMentorship"
+                                                               name="practiceCanada" type="radio"
+                                                               className="custom-control-input"
+                                                        />
+                                                        <span className="custom-control-label">Mentorship</span>
+                                                    </label>
+                                                </div>
+                                                <div className="custom-controls-stacked">
+                                                    <label className="custom-control custom-radio">
+                                                        <input id="tranning"
+                                                               name="practiceCanada" type="radio"
+                                                               className="custom-control-input"
+                                                        />
+                                                        <span className="custom-control-label">Training</span>
+                                                    </label>
+                                                </div>
+                                                <div className="custom-controls-stacked">
+                                                    <label className="custom-control custom-radio">
+                                                        <input id="other"
+                                                               name="practiceCanada" type="radio"
+                                                               className="custom-control-input"
+                                                        />
+                                                        <span className="custom-control-label">Other</span>
+                                                    </label>
+                                                </div>
+                                            </div>
                                         </div>
                                         <div className="form-group col-md-6">
                                             <label htmlFor="helpRequestedDomain_other">If Other, Specify</label>
@@ -1130,7 +1449,7 @@ class FCRPLoan extends Component {
                                                     />
                                                     <span className="custom-control-label">Yes</span>
                                                 </label>
-                                                <label className="custom-control custom-radio">
+                                                <label className="custom-control custom-radio" >
                                                     <input id="occupationFromOutsideCanada_no"
                                                            name="occupationFromOutsideCanada" type="radio"
                                                            className="custom-control-input" readOnly={!isEditable}
@@ -1179,20 +1498,18 @@ class FCRPLoan extends Component {
                                                     <label className="custom-control custom-radio">
                                                         <input id="englishLanguageAssessed_yes"
                                                                name="englishLanguageAssessed" type="radio"
-                                                               className="custom-control-input" readOnly={!isEditable}
+                                                               className="custom-control-input"
                                                                disabled={!isEditable}
-                                                               onChange={(e) => {
-                                                               }}
                                                         />
                                                         <span className="custom-control-label">Yes</span>
                                                     </label>
                                                     <label className="custom-control custom-radio">
                                                         <input id="englishLanguageAssessed_no"
                                                                name="englishLanguageAssessed" type="radio"
-                                                               className="custom-control-input" readOnly={!isEditable}
+                                                               className="custom-control-input"
                                                                disabled={!isEditable}
-                                                               onChange={(e) => {
-                                                               }}/>
+                                                               defaultChecked            
+                                                        />
                                                         <span className="custom-control-label">No</span>
                                                     </label>
                                                 </div>
@@ -1208,7 +1525,6 @@ class FCRPLoan extends Component {
                                             <label htmlFor="englishLanguageAssessment_listening">Listening</label>
                                             <select className="form-control" id="englishLanguageAssessment_listening"
                                                     name="englishLanguageAssessment_listening" readOnly={!isEditable}
-                                                    disabled={!isEditable}
                                                     onChange={(e) => {
                                                     }}>
                                                 <option value="">--</option>
@@ -1230,7 +1546,6 @@ class FCRPLoan extends Component {
                                             <label htmlFor="englishLanguageAssessment_speaking">Speaking</label>
                                             <select className="form-control" id="englishLanguageAssessment_speaking"
                                                     name="englishLanguageAssessment_speaking" readOnly={!isEditable}
-                                                    disabled={!isEditable}
                                                     onChange={(e) => {
                                                     }}>
                                                 <option value="">--</option>
@@ -1252,7 +1567,6 @@ class FCRPLoan extends Component {
                                             <label htmlFor="englishLanguageAssessment_reading">Reading</label>
                                             <select className="form-control" id="englishLanguageAssessment_reading"
                                                     name="englishLanguageAssessment_reading" readOnly={!isEditable}
-                                                    disabled={!isEditable}
                                                     onChange={(e) => {
                                                     }}>
                                                 <option value="">--</option>
@@ -1274,7 +1588,6 @@ class FCRPLoan extends Component {
                                             <label htmlFor="englishLanguageAssessment_writing">Writing</label>
                                             <select className="form-control" id="englishLanguageAssessment_writing"
                                                     name="englishLanguageAssessment_writing" readOnly={!isEditable}
-                                                    disabled={!isEditable}
                                                     onChange={(e) => {
                                                     }}>
                                                 <option value="">--</option>
@@ -1304,12 +1617,350 @@ class FCRPLoan extends Component {
                                                     </div>
                                                 </div>
                                                 <input name="englishLanguageAssessment_assessmentDate"
-                                                       id="englishLanguageAssessment_assessmentDate" type="text"
-                                                       className="form-control" placeholder="MM/DD/YYYY"
+                                                       id="englishLanguageAssessment_assessmentDate" type="date"
+                                                       className="form-control"
+                                                       date-date=""
                                                        readOnly={!isEditable}
                                                        disabled={!isEditable}
                                                        onChange={(e) => {
                                                        }}/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <h3>Action Plan/Referrals</h3>
+                                <section>
+                                    <table className="table table-bordered">
+                                        <tbody>
+                                            <tr>
+                                                <td>
+                                                    LASSA
+                                                </td>
+                                                <td>
+                                                    <div className="form-row">
+                                                        <div className="form-group col-md-4">
+                                                            <label className="custom-control custom-checkbox">
+                                                                <input id="credential"
+                                                                       name="Credential" type="checkbox"
+                                                                       className="custom-control-input" readOnly={!isEditable}
+                                                                       disabled={!isEditable}
+                                                                />
+                                                                <span className="custom-control-label">Credential Assessment</span>
+                                                            </label>
+                                                        </div>
+                                                        <div className="form-group col-md-3">
+                                                            <label className="custom-control custom-checkbox">
+                                                                <input id="licensingToActionTab"
+                                                                       name="LicensingToActionTab" type="checkbox"
+                                                                       className="custom-control-input" readOnly={!isEditable}
+                                                                       disabled={!isEditable}
+                                                                />
+                                                                <span className="custom-control-label">Licensing</span>
+                                                            </label>
+                                                        </div>
+                                                        <div className="form-group col-md-5">
+                                                            <div className="input-group">
+                                                                <div className="input-group-prepend">
+                                                                    <div 
+                                                                        className="input-group-text" 
+                                                                        style={{ border:"none", marginTop: -10, paddingLeft: 0 }}>
+                                                                        <label className="custom-control custom-checkbox">
+                                                                            <input id="otherToActionTab"
+                                                                                   name="OtherToActionTab" type="checkbox"
+                                                                                   className="custom-control-input" readOnly={!isEditable}
+                                                                                   disabled={!isEditable}
+                                                                            />
+                                                                            <span className="custom-control-label">Other</span>
+                                                                        </label>
+                                                                    </div>
+                                                                </div>
+                                                                <input type="text" className="form-control" id="otherToActionTabInputLASSA"
+                                                                       name="OtherToActionTabInputLASSA" readOnly={!isEditable}
+                                                                       disabled={!isEditable}
+                                                                       onChange={(e) => {
+                                                                       }} style={{ marginTop: -10 }} />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    World Skills
+                                                </td>
+                                                <td>
+                                                    <div className="form-row">
+                                                        <div className="form-group col-md-3">
+                                                            <label className="custom-control custom-checkbox">
+                                                                <input id="sectorSpeicalist"
+                                                                       name="SectorSpeicalist" type="checkbox"
+                                                                       className="custom-control-input" readOnly={!isEditable}
+                                                                       disabled={!isEditable}
+                                                                />
+                                                                <span className="custom-control-label">Sector Speicalist</span>
+                                                            </label>
+                                                        </div>
+                                                        <div className="form-group col-md-3">
+                                                            <label className="custom-control custom-checkbox">
+                                                                <input id="employmentSupport"
+                                                                       name="EmploymentSupport" type="checkbox"
+                                                                       className="custom-control-input" readOnly={!isEditable}
+                                                                       disabled={!isEditable}
+                                                                />
+                                                                <span className="custom-control-label">Employment Support</span>
+                                                            </label>
+                                                        </div>
+                                                        <div className="form-group col-md-3">
+                                                            <label className="custom-control custom-checkbox">
+                                                                <input id="intakeAssessment"
+                                                                       name="IntakeAssessment" type="checkbox"
+                                                                       className="custom-control-input" readOnly={!isEditable}
+                                                                       disabled={!isEditable}
+                                                                />
+                                                                <span className="custom-control-label">Intake Assessment</span>
+                                                            </label>
+                                                        </div>
+                                                        <div className="form-group col-md-3">
+                                                            <div className="input-group">
+                                                                <div className="input-group-prepend">
+                                                                    <div 
+                                                                        className="input-group-text" 
+                                                                        style={{ border:"none", marginTop: -10, paddingLeft: 0 }}>
+                                                                        <label className="custom-control custom-checkbox">
+                                                                            <input id="otherToActionTabWorld"
+                                                                                   name="OtherToActionTabWorld" type="checkbox"
+                                                                                   className="custom-control-input" readOnly={!isEditable}
+                                                                                   disabled={!isEditable}
+                                                                            />
+                                                                            <span className="custom-control-label">Other</span>
+                                                                        </label>
+                                                                    </div>
+                                                                </div>
+                                                                <input type="text" className="form-control" id="otherToActionTabInputWorld"
+                                                                       name="OtherToActionTabInputWorld" readOnly={!isEditable}
+                                                                       disabled={!isEditable}
+                                                                       onChange={(e) => {
+                                                                       }} style={{ marginTop: -10 }} />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    OCISO
+                                                </td>
+                                                <td>
+                                                    <div className="form-row">
+                                                        <div className="form-group col-md-3">
+                                                            <label className="custom-control custom-checkbox">
+                                                                <input id="mentorShip"
+                                                                       name="MentorShip" type="checkbox"
+                                                                       className="custom-control-input" readOnly={!isEditable}
+                                                                       disabled={!isEditable}
+                                                                />
+                                                                <span className="custom-control-label">MentorShip</span>
+                                                            </label>
+                                                        </div>
+                                                        <div className="form-group col-md-3">
+                                                            <div className="input-group">
+                                                                <div className="input-group-prepend">
+                                                                    <div 
+                                                                        className="input-group-text" 
+                                                                        style={{ border:"none", marginTop: -10, paddingLeft: 0 }}>
+                                                                        <label className="custom-control custom-checkbox">
+                                                                            <input id="otherToActionTabOCISO"
+                                                                                   name="OtherToActionTabOCISO" type="checkbox"
+                                                                                   className="custom-control-input" readOnly={!isEditable}
+                                                                                   disabled={!isEditable}
+                                                                            />
+                                                                            <span className="custom-control-label">Other</span>
+                                                                        </label>
+                                                                    </div>
+                                                                </div>
+                                                                <input type="text" className="form-control" id="otherToActionTabInputOCISO"
+                                                                       name="OtherToActionTabInputOCISO" readOnly={!isEditable}
+                                                                       disabled={!isEditable}
+                                                                       onChange={(e) => {
+                                                                       }} style={{ marginTop: -10 }} />
+                                                            </div>
+                                                        </div>
+                                                        <div className="col-md-6"></div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    OCLF
+                                                </td>
+                                                <td>
+                                                    <div className="form-row">
+                                                        <div className="form-group col-md-5">
+                                                            <label className="custom-control custom-checkbox">
+                                                                <input id="financialEmpowermentTraining"
+                                                                       name="FinancialEmpowermentTraining" type="checkbox"
+                                                                       className="custom-control-input" readOnly={!isEditable}
+                                                                       disabled={!isEditable}
+                                                                />
+                                                                <span className="custom-control-label">Financial Empowerment Training</span>
+                                                            </label>
+                                                        </div>
+                                                        <div className="form-group col-md-3">
+                                                            <div className="input-group">
+                                                                <div className="input-group-prepend">
+                                                                    <div 
+                                                                        className="input-group-text" 
+                                                                        style={{ border:"none", marginTop: -10, paddingLeft: 0 }}>
+                                                                        <label className="custom-control custom-checkbox">
+                                                                            <input id="otherToActionTabOCLF"
+                                                                                   name="OtherToActionTabOCLF" type="checkbox"
+                                                                                   className="custom-control-input" readOnly={!isEditable}
+                                                                                   disabled={!isEditable}
+                                                                            />
+                                                                            <span className="custom-control-label">Other</span>
+                                                                        </label>
+                                                                    </div>
+                                                                </div>
+                                                                <input type="text" className="form-control" id="otherToActionTabInputOCLF"
+                                                                       name="OtherToActionTabInputOCLF" readOnly={!isEditable}
+                                                                       disabled={!isEditable}
+                                                                       onChange={(e) => {
+                                                                       }} style={{ marginTop: -10 }} />
+                                                            </div>
+                                                        </div>
+                                                        <div className="col-md-4"></div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <div className="form-row">
+                                        <div className="form-group col-md-12">
+                                            <label htmlFor="longTermGoals">Remark</label>
+                                            <textarea className="form-control" id="remark"
+                                                   name="Remark" readOnly={!isEditable}
+                                                   disabled={!isEditable}
+                                                   onChange={(e) => {
+                                                   }}></textarea>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <h3>Consent</h3>
+                                <section>
+                                    <div className="form-row">
+                                        <h4>Confidential Consent for the Release of Information</h4>
+                                        <div>
+                                            I hereby give World Skills Employment Centre / Ottawa Job Match Network (OJMN) and its partner organization staff, my consent to share the information and documents I have provided with:
+                                        </div>
+                                        <div style={{width: "100%"}}>
+                                            <ul>
+                                                <li>Prospective employers</li>
+                                                <li>World Skills Employment Centre Programs</li>
+                                                <li>Other partner agencies</li>
+                                            </ul>
+                                        </div>
+                                        <div>
+                                            For the purpose of job preparation (including referrals) and job matching, and for use by World Skills Employmen Centre and partner organizations for the promotion of services and job candidates. (N.B. You will be notified prior to any publication of your testimonial and/or personal information)
+                                                I also consent to employers to provide information to World Skills Employment Centre / OJMN about my hiring and performance.  I may revoke my consent at any time by notifying World Skills Employment Centre in writing and by mail to:
+                                        </div>
+                                        <div style={{width: "100%"}}>
+                                            <ul>
+                                                <li>World Skills Employment</li>
+                                                <li>Centre Suite 300-219 Argyle</li>
+                                                <li>Avenue Ottawa, ON K2P 2H4</li>
+                                                <li>Attn: Client Services</li>
+                                            </ul>
+                                        </div>
+                                        <div style={{width: "100%"}}>
+                                            The above revocation is effective 3 days after receipt by
+                                            <br/>
+                                            World Skills.
+                                        </div>
+                                        <h4>Confidential Statement:</h4>
+                                        <div>
+                                            <i>
+                                            I certify that all the information I have provided is true, complete and correct. I understand that all information on this form is voluntarily supplied and may be used and disclosed in a professional manner and in good faith for the specific purpose of job match and job preparation. I understand that it is the policy of World Skills Employment Centre to regard all information pertaining to staff, volunteers and client as confidential. This includes both written and verbal information. I understand that participating in the World Skills Employment Centre programs / Ottawa Job Match Network (OJMN) does not guarantee employment; that securing employment is my responsibility; and that participating actively in job searching and job readiness increases my chances of finding employment through World Skills Employment Centre / OJMN and independently.
+                                            <br/>
+                                            I authorize you and your organization to investigate all statements contained on this application.  I understand that any misrepresentation or omission of facts called for is cause for immediate disqualification.
+                                            </i>
+                                        </div>
+                                        <div className="form-row" style={{ width: "100%" }}>
+                                            <div className="form-group col-md-6">
+                                                <div className="input-group">
+                                                    <div className="input-group-prepend">
+                                                        <div className="input-group-text" style={{border: "none", paddingLeft: 0}}>
+                                                            <label className="custom-control custom-checkbox">Participant Name:</label>
+                                                        </div>
+                                                    </div>
+                                                    <input type="text" className="form-control" id="participantName" name="ParticipantName" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="form-row" style={{ width: "100%" }}>
+                                            <div className="form-group col-md-4">
+                                                <input type="text" className="form-control" id="signature" name="Signature" placeholder="Enter Full Name Here."/>
+                                                <label htmlFor="Signature">Signature</label>
+                                            </div>
+                                            <div className="form-group col-md-4">
+                                                <input type="date" date-date="" className="form-control" id="signDate" name="SignDate" />
+                                                <label htmlFor="Date">Date</label>
+                                            </div>
+                                            <div className="col-md-4"></div>
+                                        </div>
+                                        <div style={{ fontSize: 18 }}>
+                                            <strong>
+                                            Please note that by registering as a client with World Skills Employment Centre you consent to receive 
+                                                follow up messages/calls to inquire on the progress of your job search as per our funders’ requirements. 
+                                                We appreciate your collaboration.</strong>
+                                        </div>
+                                        <br />
+                                        <h4>Message from Immigration, Refugees, and Citizenship Canada (IRCC):</h4>
+                                        <div>
+                                            Immigration, Refugees, and Citizenship Canada (IRCC) may want to contact you in the future. They will ask only about IRCC services, including services you received from our organization, and if these services were useful to you and helped you settle in Canada. IRCC will use your answers, and answers from other immigrants to improve services for all immigrants. This is voluntary: you are not obligated to answer IRCC’s questions. IRCC will not use your information to make any decisions about you personally. 
+                                            <br />
+                                            May IRCC or an independent research company acting for IRCC contact you in future?
+                                            <label className="custom-control custom-checkbox">
+                                                <input id="consentYes"
+                                                       name="ConsentYes" type="checkbox"
+                                                       className="custom-control-input" readOnly={!isEditable}
+                                                       disabled={!isEditable}
+                                                />
+                                                <span className="custom-control-label">Yes</span>
+                                            </label>
+                                            <label className="custom-control custom-checkbox">
+                                                <input id="consentNo"
+                                                       name="ConsentNo" type="checkbox"
+                                                       className="custom-control-input" readOnly={!isEditable}
+                                                       disabled={!isEditable}
+                                                />
+                                                <span className="custom-control-label">No</span>
+                                            </label>
+                                        </div>
+                                        <div className="form-row" style={{ width: "100%" }}>
+                                            <div className="form-group col-md-4">
+                                                <input type="text" className="form-control" id="otherSignature" name="OtherSignature" placeholder="Enter Full Name Here." />
+                                                <label htmlFor="Signature">Signature</label>
+                                            </div>
+                                            <div className="form-group col-md-4">
+                                                <input type="date" date-date="" className="form-control" id="othersignDate" name="OthersignDate" />
+                                                <label htmlFor="Date">Date</label>
+                                            </div>
+                                            <div className="col-md-4"></div>
+                                        </div>
+                                        <div className="form-row" style={{ width: "100%", border: "1px solid black" }}>
+                                            <div className="form-group col-md-6">
+                                                <i>Staff member: </i>
+                                            </div>
+                                            <div className="form-group col-md-6">
+                                                <i>Site/Service/Program: </i>
+                                            </div>
+                                            <div className="form-group col-md-6">
+                                                <i>Signature: </i>
+                                            </div>
+                                            <div className="form-group col-md-6">
+                                                <i>Date: </i>
                                             </div>
                                         </div>
                                     </div>
@@ -1327,4 +1978,8 @@ class FCRPLoan extends Component {
 
 }
 
-export default connect()(FCRPLoan)
+const mapStateToProps = state => ({
+    permissions: state.access.permissions
+})
+
+export default connect(mapStateToProps, {})(FCRPLoan)

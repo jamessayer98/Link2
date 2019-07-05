@@ -19,6 +19,7 @@ const notifications = require('./routes/notifications');
 const payment = require('./routes/payment');
 const message = require('./routes/message');
 const inbox = require('./routes/inbox');
+const socketnotification = require('./routes/socketnotification');
 
 const sockets = require('./controllers/sockets');
 
@@ -30,6 +31,8 @@ const app = express();
 const server = require('http').Server(app);
 // Initial web socket
 const io = require('socket.io')(server);
+// SetInterval
+const getApiAndEmit = "TODO"
 
 // Log requests info
 app.use(morgan('dev'));
@@ -75,6 +78,7 @@ app.use('/api/groups', groups);
 app.use('/api/notifications', notifications);
 app.use('/api/message', message);
 app.use('/api/inbox', inbox);
+app.use('/api/socketnotifications', socketnotification);
 // Io init
 io.on('connection', sockets.init);
 

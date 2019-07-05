@@ -9,6 +9,7 @@ import {
 // Get all submissions
 export const getAllSubmissions = userData => async dispatch => {
     const res = await axios.post(`${API_URL}/api/submissions/all`, userData);
+    console.log(res.data);
     dispatch({
         type: GET_ALL_SUBMISSIONS,
         payload: res.data
@@ -39,9 +40,10 @@ export const editSubmission = (profileId, submission, submissionId) => async dis
 
 // Delete a submission
 export const deleteSubmission = (userData, submissionId) => async dispatch => {
-    const res = await axios.post(`${API_URL}/api/submissions/${submissionId}/delete`, userData);
+    const re = await axios.post(`${API_URL}/api/submissions/${submissionId}/delete`, userData);
+    const res = await axios.post(`${API_URL}/api/submissions/all`, userData);
     dispatch({
-        type: GET_SUBMISSION,
+        type: GET_ALL_SUBMISSIONS,
         payload: res.data
     });
 };
@@ -54,3 +56,10 @@ export const getSubmissionView = (formType) => async dispatch => {
         payload: res.data
     });
 };
+
+export const searchByDate = (payload) => async dispatch => {
+    dispatch({
+        type: GET_ALL_SUBMISSIONS,
+        payload: payload
+    });
+}

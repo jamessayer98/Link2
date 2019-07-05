@@ -1,15 +1,16 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { getAllSubmissions } from '../../../../actions/submissionActions';
+import { getAllSubmissions } from '../../../actions/submissionActions';
 import AdminSubmissionList from './AdminSubmissionList';
 
-class PartnerSubmission extends Component {
+class ClientSubmission extends Component {
   state = {
     submissionList: []
   };
 
   componentDidMount() {
     const { getAllSubmissions, permissions } = this.props;
+    console.log("permissions", permissions)
     const userData = {
       profileId: permissions[0].profile,
       organizationId: permissions[0].organization
@@ -22,16 +23,17 @@ class PartnerSubmission extends Component {
       nextProps.submissions.allSubmissions.length !==
       this.state.submissionList.length
     ) {
-      let submissionList = nextProps.submissions.allSubmissions.filter(submission => submission.content.fromForm == "fcrp-loan")
-      this.setState({ submissionList: submissionList });
+      this.setState({ submissionList: nextProps.submissions.allSubmissions });
     }
   }
 
   render() {
+    const { submissionList } = this.state;
+    const { loading } = this.props;
     return (
       <AdminSubmissionList
-        submissionList={this.state.submissionList}
-        loading={this.props.loading}
+        submissionList={submissionList}
+        loading={loading}
       />
     );
   }
@@ -46,4 +48,4 @@ const mapStateToProps = state => ({
 export default connect(
   mapStateToProps,
   { getAllSubmissions }
-)(PartnerSubmission);
+)(ClientSubmission);

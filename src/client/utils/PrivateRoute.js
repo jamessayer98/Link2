@@ -33,7 +33,7 @@ class PrivateRoute extends Component {
     if (role === 'user') navbar = <ClientNavbar />;
     if (role === 'staff') navbar = <AdminNavbar location={this.props.location} />;
     if (role === 'admin') navbar = <AdminNavbar location={this.props.location} />;
-    if (role === 'partner') navbar = <PartnerNavbar />;
+    if (role === 'partner') navbar = <PartnerNavbar location={this.props.location}/>;
 
     return (
       <Route
@@ -57,7 +57,8 @@ class PrivateRoute extends Component {
 
 const mapStateToProps = state => ({
   auth: state.auth,
-  permissions: state.access.permissions
+  permissions: state.access.permissions,
+  notifications: state.notifications.allNotifications
 });
 
 PrivateRoute.propTypes = {

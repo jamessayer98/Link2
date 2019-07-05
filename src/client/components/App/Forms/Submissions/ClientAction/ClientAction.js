@@ -3,6 +3,7 @@ import React, {Component} from 'react';
 import {connect} from 'react-redux'
 import Spinner from '../../../../Elements/Spinner';
 import {editSubmission} from "../../../../../actions/submissionActions";
+import Breadcrumb from 'react-bootstrap/Breadcrumb'
 
 class ClientActionSubmission extends Component {
 
@@ -16,7 +17,21 @@ class ClientActionSubmission extends Component {
             titleTemplate: '<span class="number">#index#</span> <span class="title">#title#</span>',
             cssClass: 'wizard wizard-style-2',
             onStepChanging: function (event, currentIndex, newIndex) {
-                return true
+                let content = {
+                    firstName: window.$('#firstName').val(),
+                    lastName: window.$('#lastName').val()
+                }
+
+                if (content.firstName.length == 0) window.$('#firstName').addClass("has-error");
+                else window.$('#firstName').removeClass("has-error");
+                if (content.lastName.length == 0) window.$('#lastName').addClass("has-error");
+                else window.$('#lastName').removeClass("has-error");                
+                if (content.firstName.length > 0 && content.lastName.length > 0) {
+                    return true
+                }
+                else {
+                    return false
+                }
             },
             onFinishing: function (event, currentIndex) {
                 return true
@@ -135,7 +150,7 @@ class ClientActionSubmission extends Component {
                             console.log(error);
                         }
                     }
-                    self.props.history.push('/dashboard')
+                    self.props.history.push('/modules/submissions')
                 } else {
                     self.props.history.push('/modules/submissions')
                 }
@@ -205,6 +220,13 @@ class ClientActionSubmission extends Component {
         return (
             <div className="slim-mainpanel">
                 <div className="container">
+                    <div className='slim-pageheader' style={{paddingBottom: 0}}>
+                        <Breadcrumb>
+                          <Breadcrumb.Item href="/dashboard">Home</Breadcrumb.Item>
+                          <Breadcrumb.Item href="/modules/submissions">Submission</Breadcrumb.Item>
+                          <Breadcrumb.Item active>ClientActionSubmission-{this.props.submission._id}({this.props.edit==="true"?"Edit":"View"})</Breadcrumb.Item>
+                        </Breadcrumb>
+                    </div>
                     <div id="google_translate_element"/>
 
                     <div className="section-wrapper mg-t-20">

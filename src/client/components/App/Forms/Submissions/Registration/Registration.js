@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import Spinner from '../../../../Elements/Spinner';
 import {editSubmission} from "../../../../../actions/submissionActions";
 import $ from "jquery";
+import Breadcrumb from 'react-bootstrap/Breadcrumb'
 
 class RegistrationSubmission extends Component {
 
@@ -17,7 +18,39 @@ class RegistrationSubmission extends Component {
             titleTemplate: '<span class="number">#index#</span> <span class="title">#title#</span>',
             cssClass: 'wizard wizard-style-2',
             onStepChanging: function (event, currentIndex, newIndex) {
-                return true
+                let content = {
+                    firstName: window.$('#firstName').val(),
+                    lastName: window.$('#lastName').val(),
+                    email: window.$('#email').val(),
+                    countryOfOrigin: window.$('#countryOfOrigin').val(),
+                    primaryPhoneNumber: window.$('#primaryPhoneNumber').val(),
+                    secondaryPhoneNumber: window.$('#secondaryPhoneNumber').val(),
+                    birthDate: window.$('#birthDate').val(),
+                    confirmEmail: window.$('#confirmEmail').val()
+                }
+                if (content.firstName.length == 0) window.$('#firstName').addClass("has-error");
+                else window.$('#firstName').removeClass("has-error");
+                if (content.lastName.length == 0) window.$('#lastName').addClass("has-error");
+                else window.$('#lastName').removeClass("has-error");
+                if (content.email.length == 0) window.$('#email').addClass("has-error");
+                else window.$('#email').removeClass("has-error");
+                if (content.countryOfOrigin.length == 0) window.$('#countryOfOrigin').addClass("has-error");
+                else window.$('#countryOfOrigin').removeClass("has-error");
+                if (content.primaryPhoneNumber.length == 0) window.$('#primaryPhoneNumber').addClass("has-error");
+                else window.$('#primaryPhoneNumber').removeClass("has-error");
+                if (content.secondaryPhoneNumber.length == 0) window.$('#secondaryPhoneNumber').addClass("has-error");
+                else window.$('#secondaryPhoneNumber').removeClass("has-error");
+                if (content.birthDate.length == 0) window.$('#birthDate').addClass("has-error");
+                else window.$('#birthDate').removeClass("has-error");
+                if (content.confirmEmail.length == 0) window.$('#confirmEmail').addClass("has-error");
+                else if (content.confirmEmail != content.email) window.$('#confirmEmail').addClass("has-error");
+                else window.$('#confirmEmail').removeClass("has-error");
+                if (content.firstName.length > 0 && content.lastName.length > 0 && content.email.length > 0 && content.countryOfOrigin.length > 0 && content.primaryPhoneNumber.length > 0 && content.secondaryPhoneNumber.length > 0 && content.birthDate.length > 0 && content.email == content.confirmEmail) {
+                    return true
+                }
+                else {
+                    return false
+                }
             },
             onFinishing: function (event, currentIndex) {
                 return true
@@ -38,8 +71,8 @@ class RegistrationSubmission extends Component {
                         primaryPhoneNumber_voicemail: $("[name=primaryPhoneNumber_voiceMail]").find(":selected").text(),
                         secondaryPhoneNumber: $("[name=secondaryPhoneNumber]").val(),
                         secondaryPhoneNumber_voicemail: $("[name=secondaryPhoneNumber_voicemail]").find(":selected").text(),
-                        email: $("[name=emailAddress]").val(),
-                        confirmEmail: $("[name=confirmEmailAddress]").val(),
+                        email: $("[name=email]").val(),
+                        confirmEmail: $("[name=confirmEmail]").val(),
                         birthDate: $("[name=birthDate]").val(),
                         gender: $("[name=gender]").find(":selected").text(),
                         countryOfOrigin: $("[name=countryOfOrigin]").find(":selected").text(),
@@ -121,7 +154,7 @@ class RegistrationSubmission extends Component {
                             console.log(error);
                         }
                     }
-                    self.props.history.push('/dashboard')
+                    self.props.history.push('/modules/submissions')
                 } else {
                     self.props.history.push('/modules/submissions')
                 }
@@ -143,6 +176,13 @@ class RegistrationSubmission extends Component {
         return (
             <div className="slim-mainpanel">
                 <div className="container">
+                    <div className='slim-pageheader' style={{paddingBottom: 0}}>
+                        <Breadcrumb>
+                          <Breadcrumb.Item href="/dashboard">Home</Breadcrumb.Item>
+                          <Breadcrumb.Item href="/modules/submissions">Submission</Breadcrumb.Item>
+                          <Breadcrumb.Item active>RegistrationSubmission-{this.props.submission._id}({this.props.edit==="true"?"Edit":"View"})</Breadcrumb.Item>
+                        </Breadcrumb>
+                    </div>
                     <div id="google_translate_element"/>
 
                     <div className="section-wrapper mg-t-20">

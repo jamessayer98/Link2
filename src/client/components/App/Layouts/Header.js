@@ -2,20 +2,113 @@ import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 import { logoutUser } from '../../../actions/authActions';
 import { connect } from 'react-redux';
+import io from 'socket.io-client';
+import { API_URL } from '../../../actions/types';
+import ReactNotification from "react-notifications-component";
+import { getSocketNotification, editSocketNotification } from '../../../actions/socketNotificationActions';
 
 class Header extends Component {
+  constructor(props) {
+    super(props)
+    this.socket = io(API_URL);
+    this.addNotification = this.addNotification.bind(this);
+      this.notificationDOMRef = React.createRef();
+      this.state = {
+        type: "",
+        sentBy: "",
+        content: "",
+        title: "",
+        id: "",
+        once: false
+    }
+  }
+
+  componentWillUpdate() {
+    console.log("aaaaaaaaaaaaaaaaa");
+    const profileId = this.props.profile._id;
+    const { getSocketNotification } = this.props;
+      getSocketNotification(profileId);
+  }
+
+  componentDidMount() {
+    const profileId = this.props.profile._id;
+    console.log("profileId", profileId);
+    const { getSocketNotification } = this.props;
+    getSocketNotification(profileId);
+    let self = this;
+    this.socket.on('has-new-conversation/', function(data) {
+      self.setState({
+        type: data.type,
+        sentBy: data.sentBy,
+        content: data.content,
+        title: data.title,
+        id: data.id
+      });
+      if (profileId == data.to) {
+        window.$("#socketNotification").trigger("click");
+        getSocketNotification(profileId);
+      }
+    })
+  } 
+
+  addNotification() {
+    const title = this.state.type + " from " + this.state.sentBy;
+    const content = this.state.title === "" ? this.state.content : (this.state.title + ": " + this.state.content);
+    this.notificationDOMRef.current.addNotification({
+    title: title,
+    message: content,
+    type: "success",
+    insert: "top",
+    container: "top-right",
+    animationIn: ["animated", "fadeIn"],
+    animationOut: ["animated", "fadeOut"],
+    dismiss: { duration: 2000 },
+    dismissable: { click: true }
+    });
+  }
+
   onLogoutClick = e => {
     e.preventDefault();
     this.props.logoutUser();
   };
 
+  setRead = (_id, id) => {
+    this.props.editSocketNotification(_id, id);
+  }
+
   render() {
     const { permissions, auth } = this.props;
     const role = permissions.length > 0 ? permissions[0].role : '';
     const firstName = auth.profile.firstName;
+    const { title, content, sentBy, type, id } = this.state;
+    const { socketNotifications } = this.props;
+    console.log(socketNotifications);
+    let notifictions = socketNotifications.map((notification, index) => {
+      let url = "/notifications/view/" + notification.id;
+      return (
+          <React.Fragment key={index}>
+            <a href={url} className="dropdown-link" onClick={() => this.setRead(notification._id, notification.id)}>
+              <div className="media">
+                <img src="http://via.placeholder.com/500x500" alt="" />
+                <div className="media-body">
+                  <p>
+                    <strong>{notification.type} from {notification.sentBy}</strong> 
+                  </p>
+                  <h6>{notification.title}</h6>
+                  <span>{notification.content}</span>
+                </div>
+              </div>
+            </a>
+          </React.Fragment>
+        )
+    })
 
     return (
       <div className="slim-header">
+        <div className="app-content">
+          <ReactNotification ref={this.notificationDOMRef} />
+          <button style={{ display: "none" }} onClick={this.addNotification} className="btn btn-primary" id="socketNotification">notification</button>
+        </div>
         <div className="container">
           <div className="slim-header-left">
             <h2 className="slim-logo">
@@ -54,58 +147,9 @@ class Header extends Component {
                   </div>
                 </div>
                 <div className="dropdown-list">
-                  <Link to="/" className="dropdown-link">
-                    <div className="media">
-                      <img src="http://via.placeholder.com/500x500" alt="" />
-                      <div className="media-body">
-                        <p>
-                          <strong>Suzzeth Bungaos</strong> tagged you and 18
-                          others in a post.
-                        </p>
-                        <span>October 03, 2017 8:45am</span>
-                      </div>
-                    </div>
-                  </Link>
-
-                  <Link to="/" className="dropdown-link">
-                    <div className="media">
-                      <img src="http://via.placeholder.com/500x500" alt="" />
-                      <div className="media-body">
-                        <p>
-                          <strong>Mellisa Brown</strong> appreciated your work{' '}
-                          <strong>The Social Network</strong>
-                        </p>
-                        <span>October 02, 2017 12:44am</span>
-                      </div>
-                    </div>
-                  </Link>
-                  <Link to="/" className="dropdown-link read">
-                    <div className="media">
-                      <img src="http://via.placeholder.com/500x500" alt="" />
-                      <div className="media-body">
-                        <p>
-                          20+ new items added are for sale in your{' '}
-                          <strong>Sale Group</strong>
-                        </p>
-                        <span>October 01, 2017 10:20pm</span>
-                      </div>
-                    </div>
-                  </Link>
-                  <Link to="/" className="dropdown-link read">
-                    <div className="media">
-                      <img src="http://via.placeholder.com/500x500" alt="" />
-                      <div className="media-body">
-                        <p>
-                          <strong>Julius Erving</strong> wants to connect with
-                          you on your conversation with{' '}
-                          <strong>Ronnie Mara</strong>
-                        </p>
-                        <span>October 01, 2017 6:08pm</span>
-                      </div>
-                    </div>
-                  </Link>
+                  {notifictions}
                   <div className="dropdown-list-footer">
-                    <a href="page-notifications.html">
+                    <a href="/notifications">
                       <i className="fa fa-angle-down" /> Show All Notifications
                     </a>
                   </div>
@@ -153,7 +197,12 @@ class Header extends Component {
   }
 }
 
+const mapStateToProps = state => ({
+  profile: state.auth.profile,
+  socketNotifications : state.socketNotifications.allsocketNotifications
+});
+
 export default connect(
-  null,
-  { logoutUser }
+  mapStateToProps,
+  { logoutUser, getSocketNotification, editSocketNotification }
 )(Header);

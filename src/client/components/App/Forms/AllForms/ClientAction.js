@@ -3,6 +3,9 @@ import {connect} from 'react-redux'
 import {Prompt} from 'react-router-dom'
 import axios from 'axios';
 import {API_URL} from '../../../../actions/types';
+import moment from 'moment';
+import Breadcrumb from 'react-bootstrap/Breadcrumb'
+let isEditableValidation;
 
 class ClientAction1 extends Component {
 
@@ -138,8 +141,44 @@ class ClientAction1 extends Component {
                         pathname: '/forms/'
                     });
                 }
-            }
+            },
+            onStepChanging: function (event, currentIndex, newIndex) {
+                let content = {
+                    firstName: window.$('#firstName').val(),
+                    lastName: window.$('#lastName').val()
+                }
+                if (isEditableValidation) {
+                    if (content.firstName.length == 0) window.$('#firstName').addClass("has-error");
+                    else window.$('#firstName').removeClass("has-error");
+                    if (content.lastName.length == 0) window.$('#lastName').addClass("has-error");
+                    else window.$('#lastName').removeClass("has-error");                
+                    if (content.firstName.length > 0 && content.lastName.length > 0) {
+                        return true
+                    }
+                    else {
+                        return false
+                    }
+                }
+                return true;
+            },
         });
+
+        window.$('input[type="date"]').change(function() {
+            this.setAttribute(
+                "data-date",
+                moment(this.value, "YYYY/MM/DD")
+                .format('YYYY/MM/DD')
+            )
+        })
+
+        Date.prototype.toDateInputValue = (function() {
+            var local = new Date(this);
+            local.setMinutes(this.getMinutes() - this.getTimezoneOffset());
+            return local.toJSON().slice(0,10);
+        });
+
+        window.$('input[type="date"]').val(new Date().toDateInputValue());
+        window.$('input[type="date"]').trigger('change');
     }
 
     render() {
@@ -148,10 +187,19 @@ class ClientAction1 extends Component {
         if (this.props.location.state.edit && this.props.location.state.edit === "true") {
             isEditable = true;
         }
+        isEditableValidation = isEditable;
 
         return (
             <div className="slim-mainpanel">
                 <div className="container">
+                    <div className='slim-pageheader' style={{paddingBottom: 0}}>
+                        <Breadcrumb>
+                          <Breadcrumb.Item href="/dashboard">Home</Breadcrumb.Item>
+                          <Breadcrumb.Item href="/forms">Forms</Breadcrumb.Item>
+                          <Breadcrumb.Item active>All Forms</Breadcrumb.Item>
+                          <Breadcrumb.Item active>ClientAction</Breadcrumb.Item>
+                        </Breadcrumb>
+                    </div>
                     <div id="google_translate_element"/>
 
                     <div className="section-wrapper mg-t-20">
@@ -193,6 +241,7 @@ class ClientAction1 extends Component {
                                                 disabled={!isEditable}
                                                 onChange={(e) => {
                                                 }}
+                                                required
                                             />
                                         </div>
                                         <div className="form-group col-md-6">

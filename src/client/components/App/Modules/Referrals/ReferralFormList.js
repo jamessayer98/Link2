@@ -17,8 +17,6 @@ class ReferralFormList extends Component {
     }
 
     componentDidMount() {
-        console.log("profileId:",this.props.profileId);
-        console.log("referral:", this.props.referralForms);
         const { getAllReferralForms } = this.props;
         getAllReferralForms(this.props.profileId);
         window.$('#referralFormTable').DataTable({
@@ -37,9 +35,15 @@ class ReferralFormList extends Component {
         this.props.history.push('/referrals/detail/' + referralId)
     }
 
-    showRows = (key, value) => {
-        this.setState(oldState => ({ ...oldState, [key]: value }));
+    changeSent = () => {
+        let self = this;
+        this.setState({sent: !self.state.sent});
     };
+
+    changeReceive = () => {
+        let self = this;
+        this.setState({received: !self.state.received});
+    }
 
     delete = event => {
         if (window.confirm('Do you want to delete referral?')) {
@@ -57,8 +61,18 @@ class ReferralFormList extends Component {
         });
     }
 
+    refer = event => {
+        let referralId = event.target.getAttribute('referral_Id')
+        console.log(referralId);
+        this.props.history.push({
+          pathname: '/referrals/partner/' + referralId
+        });
+    }
+
     render() {
-        console.log(this.props.referralForms);
+        let permission = this.props.permissions[0].role;
+        let isallow = permission === "partner";
+        let { sent, received } = this.state;
         let table = this.props.loading === true ? (
             <Spinner />
         ) : (
@@ -71,9 +85,9 @@ class ReferralFormList extends Component {
                                 </button>
                                 <div className='dropdown-menu' aria-labelledby='dropdownMenuButton12' x-placement='bottom-start'>
                                     <a className='dropdown-item' href='#' onClick={() => {}}>
-                                        <input type='checkbox' checked={this.state.received} onChange={() => {this.showRows('received', !this.state.received)}}/> Referrals Received</a>
+                                        <input type='checkbox' checked={this.state.received} onChange={() => {this.changeReceive()}}/> Referrals Received</a>
                                     <a className='dropdown-item' href='#' onClick={() => {}}>
-                                        <input type='checkbox' checked={this.state.sent} onChange={() => {this.showRows('sent', !this.state.sent)}}/> Referrals Sent</a>
+                                        <input type='checkbox' checked={this.state.sent} onChange={() => {this.changeSent()}}/> Referrals Sent</a>
                                 </div>
                             </div>                            
                         </div>
@@ -94,7 +108,7 @@ class ReferralFormList extends Component {
                             <tbody>
                                 {
                                     this.props.referralForms.map((referral, index) => {
-                                        if (!this.state.received && this.props.profileId == referral.sender._id && this.state.sent) { 
+                                        if (!received && this.props.profileId == referral.sender._id && sent) { 
                                                 return (
                                                     <React.Fragment key={referral._id}>
                                                         <tr>
@@ -122,6 +136,10 @@ class ReferralFormList extends Component {
                                                                         <a className='dropdown-item' href='#' onClick={this.delete} referral_id={referral._id}>
                                                                           <i className='fa fa-trash'/> Delete Referral
                                                                         </a>
+                                                                        { isallow?
+                                                                        <a className='dropdown-item' onClick={this.refer} referral_id={referral._id}>
+                                                                            <i className='fa fa-file'/> Refer
+                                                                        </a> : ""}
                                                                     </div>
                                                                 </div>
                                                             </td>
@@ -129,7 +147,8 @@ class ReferralFormList extends Component {
                                                     </React.Fragment>
                                                 );
                                             }
-                                        if (!this.state.sent && this.state.receive) {
+                                        if (!sent && received) {
+
                                             let k = 0;
                                             referral.receivers.map((receiver, index) => {
                                                 if (receiver._id == this.props.profileId) return;
@@ -163,6 +182,10 @@ class ReferralFormList extends Component {
                                                                         <a className='dropdown-item' href='#' onClick={this.delete} referral_id={referral._id}>
                                                                           <i className='fa fa-trash'/> Delete notifications
                                                                         </a>
+                                                                        { isallow?
+                                                                        <a className='dropdown-item' onClick={this.refer} referral_id={referral._id}>
+                                                                            <i className='fa fa-file'/> Refer
+                                                                        </a> : ""}
                                                                     </div>
                                                                 </div>
                                                             </td>
@@ -172,7 +195,7 @@ class ReferralFormList extends Component {
                                             }
                                         }
 
-                                        if (this.state.sent && this.state.received) {
+                                        if (sent && received) {
                                             return (
                                                     <React.Fragment key={referral._id}>
                                                         <tr>
@@ -200,6 +223,10 @@ class ReferralFormList extends Component {
                                                                         <a className='dropdown-item' href='#' onClick={this.delete} referral_id={referral._id}>
                                                                           <i className='fa fa-trash'/> Delete notifications
                                                                         </a>
+                                                                        { isallow?
+                                                                        <a className='dropdown-item' onClick={this.refer} referral_id={referral._id}>
+                                                                            <i className='fa fa-file'/> Refer
+                                                                        </a> : ""}
                                                                     </div>
                                                                 </div>
                                                             </td>
@@ -222,6 +249,7 @@ class ReferralFormList extends Component {
 }
 
 const mapStateToProps = state => ({
+    permissions: state.access.permissions,
     profileId: state.auth.user.profileId,
     profile: state.auth.profile,
     loading: state.referrals.loading ? state.referrals.loading : false,

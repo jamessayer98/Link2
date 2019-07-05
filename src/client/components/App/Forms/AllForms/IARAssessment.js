@@ -3,6 +3,10 @@ import {connect} from 'react-redux'
 import {Prompt} from 'react-router-dom'
 import axios from 'axios';
 import {API_URL} from '../../../../actions/types';
+import moment from 'moment';
+import Breadcrumb from 'react-bootstrap/Breadcrumb'
+
+let isEditableValidation;
 
 class IARAssessment extends Component {
 
@@ -29,7 +33,7 @@ class IARAssessment extends Component {
                     await self.disableBlocking()
 
                     let content = {
-                        firstName: window.$('#firstName').val(),
+                        firstName: window.$('#lastName').val(),
                         lastName: window.$('#lastName').val(),
                         fromForm: 'iar-assessment',
                         serviceRequested: window.$('#serviceRequested').val(),
@@ -151,8 +155,87 @@ class IARAssessment extends Component {
 
                     });
                 }
-            }
+            },
+            onStepChanging: function (event, currentIndex, newIndex) {
+                if (currentIndex == 2) {
+                    document.getElementById("iarHeader").innerHTML = "Do not fill, this section is for assessors only";
+                } else {
+                    document.getElementById("iarHeader").innerHTML = "Please fill out the following information.";
+                }
+                let content = {
+                    firstName: window.$('#firstName').val(),
+                    lastName: window.$('#lastName').val()
+                }
+                if (isEditableValidation) {
+                    if (content.firstName.length == 0) window.$('#firstName').addClass("has-error");
+                    else window.$('#firstName').removeClass("has-error");
+                    if (content.lastName.length == 0) window.$('#lastName').addClass("has-error");
+                    else window.$('#lastName').removeClass("has-error");                
+                    if (content.firstName.length > 0 && content.lastName.length > 0) {
+                        return true
+                    }
+                    else {
+                        return false
+                    }
+                }
+                return true
+            },
         })
+
+        window.$('input[type="date"]').change(function() {
+            this.setAttribute(
+                "data-date",
+                moment(this.value, "YYYY/MM/DD")
+                .format('YYYY/MM/DD')
+            )
+        })
+
+        Date.prototype.toDateInputValue = (function() {
+            var local = new Date(this);
+            local.setMinutes(this.getMinutes() - this.getTimezoneOffset());
+            return local.toJSON().slice(0,10);
+        });
+
+        window.$('input[type="date"]').val(new Date().toDateInputValue());
+        window.$('input[type="date"]').trigger('change');
+
+        window.$('#englishLanguageAssessmentScore_listening').attr("disabled", "disabled");
+        window.$('#englishLanguageAssessmentScore_speaking').attr("disabled", "disabled");
+        window.$('#englishLanguageAssessmentScore_reading').attr("disabled", "disabled");
+        window.$('#englishLanguageAssessmentScore_writing').attr("disabled", "disabled");
+
+        window.$('#englishLanguageAssessed_no').click(function (event) {
+            window.$('#englishLanguageAssessmentScore_listening').attr("disabled", "disabled");
+            window.$('#englishLanguageAssessmentScore_speaking').attr("disabled", "disabled");
+            window.$('#englishLanguageAssessmentScore_reading').attr("disabled", "disabled");
+            window.$('#englishLanguageAssessmentScore_writing').attr("disabled", "disabled");
+        });
+
+        window.$('#englishLanguageAssessed_yes').click(function (event) {
+            window.$('#englishLanguageAssessmentScore_listening').removeAttr("disabled");
+            window.$('#englishLanguageAssessmentScore_speaking').removeAttr("disabled");
+            window.$('#englishLanguageAssessmentScore_reading').removeAttr("disabled");
+            window.$('#englishLanguageAssessmentScore_writing').removeAttr("disabled");
+        });
+
+        window.$('#frenchLanguageAssessment_listening').attr("disabled", "disabled");
+        window.$('#frenchLanguageAssessment_speaking').attr("disabled", "disabled");
+        window.$('#frenchLanguageAssessment_reading').attr("disabled", "disabled");
+        window.$('#frenchLanguageAssessment_writing').attr("disabled", "disabled");
+
+        window.$('#frenchLanguageAssessed_no').click(function (event) {
+            window.$('#frenchLanguageAssessment_listening').attr("disabled", "disabled");
+            window.$('#frenchLanguageAssessment_speaking').attr("disabled", "disabled");
+            window.$('#frenchLanguageAssessment_reading').attr("disabled", "disabled");
+            window.$('#frenchLanguageAssessment_writing').attr("disabled", "disabled");
+        });
+
+        window.$('#frenchLanguageAssessed_yes').click(function (event) {
+            window.$('#frenchLanguageAssessment_listening').removeAttr("disabled");
+            window.$('#frenchLanguageAssessment_speaking').removeAttr("disabled");
+            window.$('#frenchLanguageAssessment_reading').removeAttr("disabled");
+            window.$('#frenchLanguageAssessment_writing').removeAttr("disabled");
+        });
     }
 
     render() {
@@ -161,14 +244,23 @@ class IARAssessment extends Component {
         if (this.props.location.state.edit && this.props.location.state.edit === "true") {
             isEditable = true;
         }
+        isEditableValidation = isEditable;
         return (
             <div className="slim-mainpanel">
                 <div className="container">
+                    <div className='slim-pageheader' style={{paddingBottom: 0}}>
+                        <Breadcrumb>
+                          <Breadcrumb.Item href="/dashboard">Home</Breadcrumb.Item>
+                          <Breadcrumb.Item href="/forms">Forms</Breadcrumb.Item>
+                          <Breadcrumb.Item active>All Forms</Breadcrumb.Item>
+                          <Breadcrumb.Item active>IAR</Breadcrumb.Item>
+                        </Breadcrumb>
+                    </div>
                     <div id="google_translate_element"/>
 
                     <div className="section-wrapper mg-t-20">
                         <label className="section-title">Assessment (All Clients)</label>
-                        <p className="mg-b-20 mg-sm-b-40">Please fill out the following information. </p>
+                        <p className="mg-b-20 mg-sm-b-40" id="iarHeader">Please fill out the following information. </p>
 
                         <form id="immigrationForm" method="post" action="/forms">
                             <Prompt when={isBlocking}
@@ -286,12 +378,12 @@ class IARAssessment extends Component {
                                                         <i className="fa fa-calendar tx-16 lh-0 op-6"></i>
                                                     </div>
                                                 </div>
-                                                <input id="emplymentStartDate" type="text" className="form-control"
-                                                       placeholder="MM/DD/YYYY" name="emplymentStartDate"
+                                                <input id="emplymentStartDate" type="date" className="form-control" name="emplymentStartDate"
                                                        readOnly={!isEditable}
                                                        disabled={!isEditable}
                                                        onChange={(e) => {
-                                                       }}/>
+                                                       }} date-date=""
+                                                       />
                                             </div>
                                         </div>
                                     </div>
@@ -467,8 +559,8 @@ class IARAssessment extends Component {
                                                         <i className="fa fa-calendar tx-16 lh-0 op-6"></i>
                                                     </div>
                                                 </div>
-                                                <input name="whenWillBeAvailable" id="whenWillBeAvailable" type="text"
-                                                       className="form-control" placeholder="MM/DD/YYYY"
+                                                <input name="whenWillBeAvailable" id="whenWillBeAvailable" type="date"
+                                                       className="form-control" date-date=""
                                                        readOnly={!isEditable}
                                                        disabled={!isEditable}
                                                        onChange={(e) => {
@@ -554,7 +646,7 @@ class IARAssessment extends Component {
                                                            className="custom-control-input" readOnly={!isEditable}
                                                            disabled={!isEditable}
                                                            onChange={(e) => {
-                                                           }}/>
+                                                           }} defaultChecked/>
                                                     <span className="custom-control-label">No</span>
                                                 </label>
                                             </div>
@@ -665,8 +757,8 @@ class IARAssessment extends Component {
                                                     </div>
                                                 </div>
                                                 <input name="englishLanguageAssessmentScore_assessmentDate"
-                                                       id="englishLanguageAssessmentScore_assessmentDate" type="text"
-                                                       className="form-control" placeholder="MM/DD/YYYY"
+                                                       id="englishLanguageAssessmentScore_assessmentDate" type="date"
+                                                       className="form-control" date-date=""
                                                        readOnly={!isEditable}
                                                        disabled={!isEditable}
                                                        onChange={(e) => {
@@ -693,7 +785,7 @@ class IARAssessment extends Component {
                                                            readOnly={!isEditable}
                                                            disabled={!isEditable}
                                                            onChange={(e) => {
-                                                           }}/>
+                                                           }} defaultChecked/>
                                                     <span className="custom-control-label">No</span>
                                                 </label>
                                             </div>
@@ -800,8 +892,8 @@ class IARAssessment extends Component {
                                                     </div>
                                                 </div>
                                                 <input name="frenchLanguageAssessment_assessmentDate"
-                                                       id="frenchLanguageAssessment_assessmentDate" type="text"
-                                                       className="form-control" placeholder="MM/DD/YYYY"
+                                                       id="frenchLanguageAssessment_assessmentDate" type="date"
+                                                       className="form-control" date-date=""
                                                        readOnly={!isEditable}
                                                        disabled={!isEditable}
                                                        onChange={(e) => {

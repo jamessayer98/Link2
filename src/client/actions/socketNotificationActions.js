@@ -1,18 +1,23 @@
 import axios from 'axios';
-import {API_URL, GET_ALL_NOTIFICATIONS, SHOW_NOTIFICATION, DELETE_NOTIFICATION} from './types';
+import {API_URL, GET_ALL_SOCKET_NOTIFICATIONS, SHOW_NOTIFICATION, DELETE_NOTIFICATION} from './types';
 
-export const getNotifications = (id) => async dispatch => {
-  const {data: {data}} = await axios.get(`${API_URL}/api/notifications`, {params: {id}});
+export const getSocketNotification = (id) => async dispatch => {
+  const {data: {data}} = await axios.get(`${API_URL}/api/socketnotifications`, {params: {id}});
   dispatch({
-    type: GET_ALL_NOTIFICATIONS,
+    type: GET_ALL_SOCKET_NOTIFICATIONS,
     payload: data
   });
 };
 
-export const addNotification = (payload, history) => async () => {
-  const {data: {data}} = await axios.post(`${API_URL}/api/notifications/`, payload);
-  history.push({
-    pathname: `/notifications`
+export const editSocketNotification = (_id, id) => async (dispatch) => {
+  const payload = {
+    _id: _id,
+    id: id
+  };
+  const {data: {data}} = await axios.post(`${API_URL}/api/socketnotifications/`, payload);
+  dispatch({
+    type: GET_ALL_SOCKET_NOTIFICATIONS,
+    payload: data
   });
 };
 
