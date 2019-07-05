@@ -43,7 +43,7 @@ export class Logs extends Component {
 
                 <p>Please note that your logs will be completely removed after 90 days.</p>
 
-                <p>Check out some of our other features on the application and see how best Link2Settle works for you.</p>
+                <p>Check out some of our other features on the application and see how best iAuto works for you.</p>
               </div>
             </div>
 
