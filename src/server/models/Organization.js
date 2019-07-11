@@ -65,7 +65,7 @@ const OrganizationSchema = new mongoose.Schema({
         interval: {
             type: String,
         }
-    }
+    },
 });
 
 module.exports = mongoose.model('Organization', OrganizationSchema);

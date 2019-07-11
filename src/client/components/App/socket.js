@@ -20,7 +20,7 @@ export class Socket extends Component {
 	}
 
 	componentDidMount() {
-		const profileId = this.props.profile._id;
+		const profileId = window.localStorage.getItem("profileId");
 		let self = this;
     	this.socket.on('has-new-conversation/', function(data) {
     		self.setState({

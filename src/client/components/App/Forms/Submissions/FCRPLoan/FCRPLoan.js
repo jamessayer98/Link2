@@ -2,17 +2,43 @@ import React, {Component} from "react";
 import {connect} from "react-redux";
 import Spinner from "../../../../Elements/Spinner";
 import {editSubmission} from "../../../../../actions/submissionActions";
+import axios from 'axios';
+import {API_URL} from '../../../../../actions/types';
 import $ from "jquery";
 import moment from 'moment';
 import Breadcrumb from 'react-bootstrap/Breadcrumb'
 
 class FCRPLoanSubmission extends Component {
 
-    componentDidUpdate() {
+    async componentDidUpdate() {
         const self = this;
         console.log("self.props.edit", self.props.edit);
         const isEditable = (self.props.edit === "true");
         const permission = self.props.permissions[0].role;
+        const response = await axios.get(API_URL + '/api/occupation');
+        let credential_assessment = false;
+        let loan_assistance =       false;
+        let licensing =             false;
+        let other =                 false;
+        let training =              false;
+        let mentorship =            false;
+        response.data.data.map((occupation) => {
+            if (occupation.organization != window.localStorage.getItem('organization')) {
+                credential_assessment = credential_assessment || occupation.credential_assessment;
+                loan_assistance       = loan_assistance || occupation.loan_assistance;
+                licensing             = licensing || occupation.licensing;
+                other                 = other || occupation.other;
+                training              = training || occupation.training;
+                mentorship            = mentorship || occupation.mentorship;
+            }
+        })
+
+        if (credential_assessment) window.$('#credentialAssessment').attr('disabled', 'disabled');
+        if (loan_assistance) window.$('#loanAssistance').attr('disabled', 'disabled');
+        if (licensing) window.$('#licesing').attr('disabled', 'disabled');
+        if (other) window.$('#other').attr('disabled', 'disabled');
+        if (training) window.$('#tranning').attr('disabled', 'disabled');
+        if (mentorship) window.$('#practiceMentorship').attr('disabled', 'disabled');
         window.$("#wizard6").steps({
             headerTag: "h3",
             bodyTag: "section",
@@ -159,6 +185,15 @@ class FCRPLoanSubmission extends Component {
                         otherSignature: $('[name=OtherSignature]').val(),
                         othersignDate: $('[name=OthersignDate]').val()
                     };
+                    let occupation = {
+                        credential_assessment: window.$('#credentialAssessment').prop("checked"),
+                        loan_assistance: window.$('#loanAssistance').prop("checked"),
+                        licensing: window.$('#licesing').prop("checked"),
+                        other: window.$('#other').prop("checked"),
+                        training: window.$('#tranning').prop("checked"),
+                        mentorship: window.$('#practiceMentorship').prop("checked"),
+                        organization: window.localStorage.getItem('organization')
+                    }
                     let permission = self.props.permissions[0];
                     console.log(permission);
                     if (permission.role === "admin" || permission.role === "staff") {
@@ -1529,9 +1564,9 @@ class FCRPLoanSubmission extends Component {
                                             </label>
                                             <div className="form-group">
                                                 <div className="custom-controls-stacked">
-                                                    <label className="custom-control custom-radio">
+                                                    <label className="custom-control custom-checkbox">
                                                         <input id="credentialAssessment"
-                                                               name="practiceCanada" type="radio"
+                                                               name="practiceCanada" type="checkbox"
                                                                className="custom-control-input"
                                                                checked={
                                                                     submission.content.credentialAssessment
@@ -1541,9 +1576,9 @@ class FCRPLoanSubmission extends Component {
                                                     </label>
                                                 </div>
                                                 <div className="custom-controls-stacked">
-                                                    <label className="custom-control custom-radio">
+                                                    <label className="custom-control custom-checkbox">
                                                         <input id="loanAssistance"
-                                                               name="practiceCanada" type="radio"
+                                                               name="practiceCanada" type="checkbox"
                                                                className="custom-control-input"
                                                                checked={
                                                                     submission.content.loanAssistance
@@ -1553,9 +1588,9 @@ class FCRPLoanSubmission extends Component {
                                                     </label>  
                                                 </div>
                                                 <div className="custom-controls-stacked">
-                                                    <label className="custom-control custom-radio">
+                                                    <label className="custom-control custom-checkbox">
                                                         <input id="licesing"
-                                                               name="practiceCanada" type="radio"
+                                                               name="practiceCanada" type="checkbox"
                                                                className="custom-control-input"
                                                                checked={
                                                                     submission.content.licesing
@@ -1565,9 +1600,9 @@ class FCRPLoanSubmission extends Component {
                                                     </label>
                                                 </div>
                                                 <div className="custom-controls-stacked">
-                                                    <label className="custom-control custom-radio">
+                                                    <label className="custom-control custom-checkbox">
                                                         <input id="practiceMentorship"
-                                                               name="practiceCanada" type="radio"
+                                                               name="practiceCanada" type="checkbox"
                                                                className="custom-control-input"
                                                                checked={
                                                                     submission.content.practiceMentorship
@@ -1577,9 +1612,9 @@ class FCRPLoanSubmission extends Component {
                                                     </label>
                                                 </div>
                                                 <div className="custom-controls-stacked">
-                                                    <label className="custom-control custom-radio">
+                                                    <label className="custom-control custom-checkbox">
                                                         <input id="tranning"
-                                                               name="practiceCanada" type="radio"
+                                                               name="practiceCanada" type="checkbox"
                                                                className="custom-control-input"
                                                                checked={
                                                                     submission.content.tranning
@@ -1589,9 +1624,9 @@ class FCRPLoanSubmission extends Component {
                                                     </label>
                                                 </div>
                                                 <div className="custom-controls-stacked">
-                                                    <label className="custom-control custom-radio">
+                                                    <label className="custom-control custom-checkbox">
                                                         <input id="other"
-                                                               name="practiceCanada" type="radio"
+                                                               name="practiceCanada" type="checkbox"
                                                                className="custom-control-input"
                                                                checked={
                                                                     submission.content.other

@@ -20,6 +20,7 @@ const payment = require('./routes/payment');
 const message = require('./routes/message');
 const inbox = require('./routes/inbox');
 const socketnotification = require('./routes/socketnotification');
+const occupation = require('./routes/occupation');
 
 const sockets = require('./controllers/sockets');
 
@@ -79,6 +80,8 @@ app.use('/api/notifications', notifications);
 app.use('/api/message', message);
 app.use('/api/inbox', inbox);
 app.use('/api/socketnotifications', socketnotification);
+app.use('/api/occupation', occupation);
+
 // Io init
 io.on('connection', sockets.init);
 

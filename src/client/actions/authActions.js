@@ -1,6 +1,6 @@
 import axios from 'axios';
 import jwt_decode from 'jwt-decode';
-
+import {getSocketNotification} from './socketNotificationActions'
 import {
   API_URL,
   GET_ERRORS,
@@ -72,6 +72,8 @@ export const loginUser = userData => async dispatch => {
     // Decode token to get user data
     const decoded = jwt_decode(token);
     console.log(decoded);
+    window.localStorage.setItem("profileId", decoded.profileId);
+    getSocketNotification(decoded.profileId);
     // Get current user profile
     dispatch(getCurrentUserProfile(decoded.userId));
     //Get current user permissons

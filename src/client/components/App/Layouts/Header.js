@@ -6,7 +6,7 @@ import io from 'socket.io-client';
 import { API_URL } from '../../../actions/types';
 import ReactNotification from "react-notifications-component";
 import { getSocketNotification, editSocketNotification, deleteAllSocket } from '../../../actions/socketNotificationActions';
-
+let reload = 1;
 class Header extends Component {
   constructor(props) {
     super(props)
@@ -20,7 +20,8 @@ class Header extends Component {
         title: "",
         id: "",
         once: false,
-        delete: true
+        delete: true,
+        profileId: null
     }
   }
 
@@ -31,14 +32,11 @@ class Header extends Component {
   // }
 
   componentDidMount() {
-    const profileId = this.props.profile._id;
-    console.log("profileId", profileId);
+    const profileId = window.localStorage.getItem("profileId");
     const { getSocketNotification } = this.props;
     getSocketNotification(profileId);
     let self = this;
     this.socket.on('has-new-conversation/', function(data) {
-      console.log(profileId);
-      console.log(data.to);
       self.setState({
         type: data.type,
         sentBy: data.sentBy,
@@ -50,8 +48,8 @@ class Header extends Component {
         window.$("#socketNotification").trigger("click");
         getSocketNotification(profileId);
       }
-    })
-  } 
+    });
+  }
 
   addNotification() {
     const title = this.state.type + " from " + this.state.sentBy;
@@ -74,10 +72,6 @@ class Header extends Component {
     this.props.logoutUser();
   };
 
-  setRead = (_id, id) => {
-    this.props.editSocketNotification(_id, id);
-  }
-
   deleteSocket = () => {
     this.props.deleteAllSocket();
     this.setState({delete: true});
@@ -89,32 +83,37 @@ class Header extends Component {
     const firstName = auth.profile.firstName;
     const { title, content, sentBy, type, id } = this.state;
     const { socketNotifications } = this.props;
+    let organization = permissions ? permissions[0] ? permissions[0].organization : "" : '';
+    window.localStorage.setItem('organization', organization);
     console.log(socketNotifications);
-    let notifictions = socketNotifications.map((notification, index) => {
-      let url = "/notifications/view/" + notification.id;
-      if (notification.type == "Notification") {
-        url = "/notifications/view/" + notification.id;
-      }
-      else if (notification.type == "Submission") {
-        url = "/modules/referrals/"; 
-      }
-      return (
-          <React.Fragment key={index}>
-            <a href={url} className="dropdown-link" onClick={() => this.setRead(notification._id, notification.id)}>
-              <div className="media">
-                <img src="http://via.placeholder.com/500x500" alt="" />
-                <div className="media-body">
-                  <p>
-                    <strong>{notification.type} from {notification.sentBy}</strong> 
-                  </p>
-                  <h6>{notification.title}</h6>
-                  <span>{notification.content}</span>
-                </div>
-              </div>
-            </a>
-          </React.Fragment>
-        )
-    })
+    let notifictions;
+    if (socketNotifications && socketNotifications.length > 0) {
+      notifictions = socketNotifications.map((notification, index) => {
+        let url = "/notifications/view/" + notification.id;
+        if (notification.type == "Notification") {
+          url = "/notifications/view/" + notification.id;
+        }
+        else {
+          url = "/unreadNotifications/" + notification._id; 
+        }
+          return (
+              <React.Fragment key={index}>
+                <a href={url} className="dropdown-link">
+                  <div className="media">
+                    <img src="http://via.placeholder.com/500x500" alt="" />
+                    <div className="media-body">
+                      <p>
+                        <strong>{notification.type} from {notification.sentBy}</strong> 
+                      </p>
+                      <h6>{notification.title}</h6>
+                      <span>{notification.content}</span>
+                    </div>
+                  </div>
+                </a>
+              </React.Fragment>
+            )
+      })
+    }
 
     return (
       <div className="slim-header">
@@ -149,20 +148,20 @@ class Header extends Component {
                 data-toggle="dropdown"
               >
                 <i className="icon ion-ios-bell-outline" />
-                {this.props.socketNotifications.length == 0 ? "" : <span className="indicator" /> }
+                {this.props.socketNotifications.length > 0 ? <span className="indicator" /> : "" }
               </Link>
               <div className="dropdown-menu">
                 <div className="dropdown-menu-header">
                   <h6 className="dropdown-menu-title">Notifications</h6>
                   <div>
-                    <Link to="/">Mark All as Read</Link>
+                    <Link to="/" onClick={this.deleteSocket}>Mark All as Read</Link>
                     <Link to="/">Settings</Link>
                   </div>
                 </div>
                 <div className="dropdown-list">
                   {notifictions}
                   <div className="dropdown-list-footer">
-                    <a href="/notifications" onClick={this.deleteSocket}>
+                    <a href="/unreadNotifications">
                       <i className="fa fa-angle-down" /> Show All Notifications
                     </a>
                   </div>
@@ -212,7 +211,8 @@ class Header extends Component {
 
 const mapStateToProps = state => ({
   profile: state.auth.profile,
-  socketNotifications : state.socketNotifications.allsocketNotifications
+  socketNotifications : state.socketNotifications.allsocketNotifications,
+  permissions: state.access.permissions,
 });
 
 export default connect(
