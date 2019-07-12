@@ -14,7 +14,7 @@ class ViewNotification extends Component {
   componentDidMount() {
     const profileId = this.props.profile._id;
     const { getSocketNotification, deleteAllSocket } = this.props;
-    getSocketNotification(profileId);
+    getSocketNotification(profileId, "all");
   }
   
   componentWillReceiveProps(nextProps, nextContext) {
@@ -35,22 +35,34 @@ class ViewNotification extends Component {
       });
     }
   };
+
+  goReferral = (id) => {
+    this.props.history.push('/referrals/detail/' + id);
+  }
   
   render() {
     const { socketNotifications, loading } = this.props;
     console.log("socketNotifications: ", socketNotifications);
+    let self = this;
     let notifications = this.props.socketNotifications.map((socketNotification, index) => {
-      return (
-        <div className='section-wrapper' key={index}>
-          <h3 className="card-title">{socketNotification.type} from  {socketNotification.sentBy}</h3>
-          <p className="card-subtitle">{socketNotification.title}</p>
-          <div className={'row mg-t-20'}>
-            <div className={'col-8 tx-dark'}>
-              {socketNotification.content}
+        return (
+          <div className='section-wrapper' key={index}>
+            <h3 className="card-title">{socketNotification.type} from  {socketNotification.sentBy}</h3>
+            <p className="card-subtitle">{socketNotification.title}</p>
+            <div className={'row mg-t-20'}>
+              <div className={'col-8 tx-dark'}>
+                {socketNotification.content}
+              </div>
+              <div className={'col-4'}>
+                {
+                  socketNotification.type === "Referral" ?
+                    <a href="#" onClick={() => self.goReferral(socketNotification.referralId)}>Go to Referrals</a> :
+                    ""
+                }
+              </div>
             </div>
           </div>
-        </div>
-      )
+        )
     })
 
     return (

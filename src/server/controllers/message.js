@@ -38,7 +38,8 @@ exports.postMessage = async (req, res) => {
         console.log("message to socketnotification: ", socketnotification);
         SocketNotification.create(socketnotification);
         Socket.socket('has-new-conversation', '', { to: to, id:inbox._id, sentBy: name, content: message, title: "", type: "Message", hasNewMessage: true });
-      });     
+      });
+
 
       return res.json({
         success: true,

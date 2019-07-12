@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import io from 'socket.io-client';
 import { API_URL } from '../../../actions/types';
 import ReactNotification from "react-notifications-component";
-import { getSocketNotification, editSocketNotification, deleteAllSocket } from '../../../actions/socketNotificationActions';
+import { getSocketNotification, editSocketNotification, deleteAllSocket, editAll } from '../../../actions/socketNotificationActions';
 let reload = 1;
 class Header extends Component {
   constructor(props) {
@@ -21,15 +21,10 @@ class Header extends Component {
         id: "",
         once: false,
         delete: true,
-        profileId: null
+        profileId: null,
+        referralId: "",
     }
   }
-
-  // componentWillUpdate() {
-  //   const profileId = this.props.profile._id;
-  //   const { getSocketNotification } = this.props;
-  //     getSocketNotification(profileId);
-  // }
 
   componentDidMount() {
     const profileId = window.localStorage.getItem("profileId");
@@ -42,7 +37,8 @@ class Header extends Component {
         sentBy: data.sentBy,
         content: data.content,
         title: data.title,
-        id: data.id
+        id: data.id,
+        referralId: data.referralId
       });
       if (profileId == data.to) {
         window.$("#socketNotification").trigger("click");
@@ -77,6 +73,19 @@ class Header extends Component {
     this.setState({delete: true});
   }
 
+  setRead = (notificaitionid, id) => {
+    const {editSocketNotification} = this.props;
+    editSocketNotification(notificaitionid, id);
+    console.log("aaaa");
+  }
+
+  setReadAll = e => {
+    const {editAll} = this.props;
+    const profileId = window.localStorage.getItem("profileId");
+    console.log(profileId);
+    editAll(profileId);
+  }
+
   render() {
     const { permissions, auth } = this.props;
     const role = permissions.length > 0 ? permissions[0].role : '';
@@ -87,8 +96,10 @@ class Header extends Component {
     window.localStorage.setItem('organization', organization);
     console.log(socketNotifications);
     let notifictions;
+    let self = this;
+    let bell = 0;
     if (socketNotifications && socketNotifications.length > 0) {
-      notifictions = socketNotifications.map((notification, index) => {
+      notifictions = socketNotifications.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).map((notification, index) => {
         let url = "/notifications/view/" + notification.id;
         if (notification.type == "Notification") {
           url = "/notifications/view/" + notification.id;
@@ -96,9 +107,12 @@ class Header extends Component {
         else {
           url = "/unreadNotifications/" + notification._id; 
         }
+        if (notification.isRead === false && !self.state.once) {
+          bell++;
+
           return (
               <React.Fragment key={index}>
-                <a href={url} className="dropdown-link">
+                <a href={url} className="dropdown-link" onClick={() => this.setRead(notification._id, notification.id)}>
                   <div className="media">
                     <img src="http://via.placeholder.com/500x500" alt="" />
                     <div className="media-body">
@@ -112,6 +126,7 @@ class Header extends Component {
                 </a>
               </React.Fragment>
             )
+        }
       })
     }
 
@@ -148,7 +163,7 @@ class Header extends Component {
                 data-toggle="dropdown"
               >
                 <i className="icon ion-ios-bell-outline" />
-                {this.props.socketNotifications.length > 0 ? <span className="indicator" /> : "" }
+                {bell > 0 ? <span className="indicator" /> : "" }
               </Link>
               <div className="dropdown-menu">
                 <div className="dropdown-menu-header">
@@ -161,8 +176,8 @@ class Header extends Component {
                 <div className="dropdown-list">
                   {notifictions}
                   <div className="dropdown-list-footer">
-                    <a href="/unreadNotifications">
-                      <i className="fa fa-angle-down" /> Show All Notifications
+                    <a href="/unreadNotifications" onClick={self.setReadAll}>
+                      <i className="fa fa-angle-down"/> Show All Notifications
                     </a>
                   </div>
                 </div>
@@ -217,5 +232,5 @@ const mapStateToProps = state => ({
 
 export default connect(
   mapStateToProps,
-  { logoutUser, getSocketNotification, editSocketNotification, deleteAllSocket }
+  { logoutUser, getSocketNotification, editSocketNotification, deleteAllSocket, editAll }
 )(Header);

@@ -9,7 +9,7 @@ const socketnotificationController = require('../controllers/socketnotification'
  * @description Get the list of notifications
  * @access Private
  **/
-router.get('/', middleware(socketnotificationController.index));
+router.post('/get', middleware(socketnotificationController.index));
 
 /**
  * @route /api/notifications/
@@ -17,6 +17,8 @@ router.get('/', middleware(socketnotificationController.index));
  * @access Private
  **/
 router.get('/:id', middleware(socketnotificationController.edit));
+
+router.post('/:id', middleware(socketnotificationController.updateAll));
 
 /**
  * @route /api/notifications/:id

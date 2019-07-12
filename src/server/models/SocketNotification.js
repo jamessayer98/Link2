@@ -28,6 +28,18 @@ const socketnotificationSchema = Schema({
     },
     formName: {
         type: String
+    },
+    referralId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Referral'
+    },
+    created_at: {
+      type: Date,
+      default: Date.now
+    },
+    updated_at: {
+      type: Date,
+      default: Date.now
     }
 })
 

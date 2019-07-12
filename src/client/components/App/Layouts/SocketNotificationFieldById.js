@@ -4,7 +4,8 @@ import { Link } from 'react-router-dom';
 import {getNotification} from '../../../actions/notificationAction';
 import Breadcrumb from 'react-bootstrap/Breadcrumb';
 import { getSocketNotification, editSocketNotification, deleteAllSocket } from '../../../actions/socketNotificationActions';
-
+import axios from 'axios';
+import {API_URL} from '../../../actions/types';
 class ViewNotification extends Component {
   constructor(props) {
     super(props)
@@ -17,12 +18,21 @@ class ViewNotification extends Component {
     const profileId = this.props.profile._id;
     const { getSocketNotification, match: {params: {id}} } = this.props;
     this.setState({id: id});
-    getSocketNotification(profileId);
+    getSocketNotification(profileId, "other", id);
+  }
+
+  async getRerralSubmissionId(id) {
+    const response = await axios.get(API_URL + '/api/upload-referral/submissionid/' + id);
+    console.log(response);
+  }
+
+  goReferral = (id) => {
+    this.props.history.push('/referrals/detail/' + id);
   }
   
   render() {
     const { socketNotifications, loading } = this.props;
-    console.log("socketNotifications: ", this.state.id);
+    console.log("socketNotifications: ", socketNotifications);
     let self = this;
     let notifications = this.props.socketNotifications.map((socketNotification, index) => {
       if (self.state.id == socketNotification._id) {
@@ -33,6 +43,13 @@ class ViewNotification extends Component {
             <div className={'row mg-t-20'}>
               <div className={'col-8 tx-dark'}>
                 {socketNotification.content}
+              </div>
+              <div className={'col-4'}>
+                {
+                  socketNotification.type === "Referral" ?
+                    <a href="#" onClick={() => self.goReferral(socketNotification.referralId)}>Go to Referrals</a> :
+                    ""
+                }
               </div>
             </div>
           </div>

@@ -72,6 +72,22 @@ exports.getReferral = async (req, res) => {
     }
 }
 
+exports.getReferralSubmissionId = async (req, res) => {
+    try {
+        console.log(req.params);
+        const response = await Referral.find({ $or:[ {recipients: {$all: [req.params]}}] });
+        console.log(response);
+    } catch (error) {
+        logger.error(error)
+        return res.status(422).json({
+            alert: {
+                title: 'Error!',
+                detail: 'Server occurred an error,  please try again',
+            },
+        })
+    }
+}
+
 exports.deleteReferral = async (req, res) => {
   let { referralId } = req.params;
   let referral = await Referral.findOne({_id: referralId}).remove();
@@ -100,22 +116,6 @@ exports.postReferral = async (req, res) => {
             receivers,
             submissionId
         } = req.body
-        debugger
-        let nofi = Profile.find({_id: sender}).then((nofi) => {
-            debugger
-            let name = nofi[0].firstName + " " + nofi[0].lastName;
-            const socketnotification = {
-              title: "",
-              content: note,
-              type: "Submission",
-              recipients: receivers,
-              sentBy: name,
-              id: submissionId,
-              formName: formName
-            };
-            SocketNotification.create(socketnotification);
-            Socket.socket('has-new-conversation', '', { id: submissionId, to: receivers, sentBy: name, content: note, title: "", type: "Submission", hasNewMessage: true, formName: formName });
-        });
         const user = await User.findById(userId)
         if (!user) {
             return res.status(422).json({
@@ -166,6 +166,23 @@ exports.postReferral = async (req, res) => {
         }
 
         let saved = await referral.save()
+        debugger
+        let nofi = Profile.find({_id: sender}).then((nofi) => {
+            debugger
+            let name = nofi[0].firstName + " " + nofi[0].lastName;
+            const socketnotification = {
+              title: "",
+              content: note,
+              type: "Referral",
+              recipients: receivers,
+              sentBy: name,
+              id: submissionId,
+              formName: formName,
+              referralId: saved._id
+            };
+            SocketNotification.create(socketnotification);
+            Socket.socket('has-new-conversation', '', { id: submissionId, to: receivers, sentBy: name, content: note, title: "", type: "Submission", hasNewMessage: true, formName: formName, referralId: socketnotification.referralId });
+        });
 
         let apiUrl = (process.env.NODE_ENV === "production") ? 'https://iauto.herokuapp.com' : 'http://localhost:3000'
         let maillist = profiles.map(profile => profile.email).join(',')
