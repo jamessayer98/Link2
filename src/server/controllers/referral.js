@@ -181,7 +181,7 @@ exports.postReferral = async (req, res) => {
               referralId: saved._id
             };
             SocketNotification.create(socketnotification);
-            Socket.socket('has-new-conversation', '', { id: submissionId, to: receivers, sentBy: name, content: note, title: "", type: "Submission", hasNewMessage: true, formName: formName, referralId: socketnotification.referralId });
+            Socket.socket('has-new-conversation', '', { id: submissionId, to: receivers, sentBy: name, content: note, title: "", type: "Referral", hasNewMessage: true, formName: formName, referralId: socketnotification.referralId });
         });
 
         let apiUrl = (process.env.NODE_ENV === "production") ? 'https://iauto.herokuapp.com' : 'http://localhost:3000'
