@@ -7,6 +7,8 @@ const nodeMailer = require('../helpers/nodemailer')
 const User = require('../models/User')
 const Profile = require('../models/Profile')
 const Referral = require('../models/Referral')
+const SocketNotification = require("../models/SocketNotification")
+const Socket = require('./sockets');
 
 const { referralPreview } = require('../helpers/htmlMails/referral');
 
@@ -70,6 +72,22 @@ exports.getReferral = async (req, res) => {
     }
 }
 
+exports.getReferralSubmissionId = async (req, res) => {
+    try {
+        console.log(req.params);
+        const response = await Referral.find({ $or:[ {recipients: {$all: [req.params]}}] });
+        console.log(response);
+    } catch (error) {
+        logger.error(error)
+        return res.status(422).json({
+            alert: {
+                title: 'Error!',
+                detail: 'Server occurred an error,  please try again',
+            },
+        })
+    }
+}
+
 exports.deleteReferral = async (req, res) => {
   let { referralId } = req.params;
   let referral = await Referral.findOne({_id: referralId}).remove();
@@ -82,13 +100,6 @@ exports.deleteReferral = async (req, res) => {
 exports.postReferral = async (req, res) => {
     try {
         let userId = req.user._id
-        const user = await User.findById(userId)
-        if (!user) {
-            return res.status(422).json({
-                name: 'Uploader info is required'
-            })
-        }
-
         const {
             _id,
             formName,
@@ -105,9 +116,14 @@ exports.postReferral = async (req, res) => {
             receivers,
             submissionId
         } = req.body
+        const user = await User.findById(userId)
+        if (!user) {
+            return res.status(422).json({
+                name: 'Uploader info is required'
+            })
+        }
 
         const profiles = await Profile.find({ _id: { $in: receivers } })
-        console.log(profiles);
         if (!profiles) {
             return res.json({
                 referral: {}
@@ -148,8 +164,25 @@ exports.postReferral = async (req, res) => {
                 submission: submissionId
             })
         }
-        console.log("referal---------------------", referral);
+
         let saved = await referral.save()
+        debugger
+        let nofi = Profile.find({_id: sender}).then((nofi) => {
+            debugger
+            let name = nofi[0].firstName + " " + nofi[0].lastName;
+            const socketnotification = {
+              title: "",
+              content: note,
+              type: "Referral",
+              recipients: receivers,
+              sentBy: name,
+              id: submissionId,
+              formName: formName,
+              referralId: saved._id
+            };
+            SocketNotification.create(socketnotification);
+            Socket.socket('has-new-conversation', '', { id: submissionId, to: receivers, sentBy: name, content: note, title: "", type: "Referral", hasNewMessage: true, formName: formName, referralId: socketnotification.referralId });
+        });
 
         let apiUrl = (process.env.NODE_ENV === "production") ? 'https://iauto.herokuapp.com' : 'http://localhost:3000'
         let maillist = profiles.map(profile => profile.email).join(',')

@@ -5,9 +5,8 @@ import axios from 'axios';
 import {API_URL} from '../../../../actions/types';
 import moment from 'moment';
 import Breadcrumb from 'react-bootstrap/Breadcrumb'
-
 import Datepicker from 'react-datepicker';
-import "react-datepicker/dist/react-datepicker.css";
+
 let isEditableValidation = false;
 
 class FCRPLoan extends Component {
@@ -41,10 +40,38 @@ class FCRPLoan extends Component {
       });
     }
 
-    componentDidMount() {
+    changeHandler = e => {
+
+    }
+
+    async componentDidMount() {
         const self = this;
         const isEditable = true;
-        window.download2 = this.download
+        window.download2 = this.download;
+        const response = await axios.get(API_URL + '/api/occupation');
+        let credential_assessment = false;
+        let loan_assistance =       false;
+        let licensing =             false;
+        let other =                 false;
+        let training =              false;
+        let mentorship =            false;
+        response.data.data.map((occupation) => {
+            if (occupation.organization != window.localStorage.getItem('organization')) {
+                credential_assessment = credential_assessment || occupation.credential_assessment;
+                loan_assistance       = loan_assistance || occupation.loan_assistance;
+                licensing             = licensing || occupation.licensing;
+                other                 = other || occupation.other;
+                training              = training || occupation.training;
+                mentorship            = mentorship || occupation.mentorship;
+            }
+        })
+
+        if (credential_assessment) window.$('#credentialAssessment').attr('disabled', 'disabled');
+        if (loan_assistance) window.$('#loanAssistance').attr('disabled', 'disabled');
+        if (licensing) window.$('#licesing').attr('disabled', 'disabled');
+        if (other) window.$('#other').attr('disabled', 'disabled');
+        if (training) window.$('#tranning').attr('disabled', 'disabled');
+        if (mentorship) window.$('#practiceMentorship').attr('disabled', 'disabled');
         window.$('#wizard6').steps({
             headerTag: 'h3',
             bodyTag: 'section',
@@ -199,9 +226,18 @@ class FCRPLoan extends Component {
                         credentialAssessment: window.$('#credentialAssessment').prop("checked"),
                         credential: window.$('#credential').prop("checked")
                     }
-                    console.log(content);
+                    let occupation = {
+                        credential_assessment: window.$('#credentialAssessment').prop("checked"),
+                        loan_assistance: window.$('#loanAssistance').prop("checked"),
+                        licensing: window.$('#licesing').prop("checked"),
+                        other: window.$('#other').prop("checked"),
+                        training: window.$('#tranning').prop("checked"),
+                        mentorship: window.$('#practiceMentorship').prop("checked"),
+                        organization: window.localStorage.getItem('organization')
+                    }
                     try {
                         await axios.post(API_URL + '/api/submissions', content);
+                        await axios.post(API_URL + '/api/occupation', occupation);
                         self.props.history.push({
                             // pathname: '/forms/submission-success'
                             pathname: '/forms/'
@@ -220,6 +256,9 @@ class FCRPLoan extends Component {
             }
         })        
 
+        window.$('.date-date-picker').datepicker({
+            dateFormat: "yy/mm/dd"
+        });
         window.$('#landingDocument').change(function (event) {
             var file = window.$('#landingDocument').prop('files')[0];
             if (file) {
@@ -251,23 +290,6 @@ class FCRPLoan extends Component {
             window.$('#englishLanguageAssessment_reading').removeAttr("disabled");
             window.$('#englishLanguageAssessment_writing').removeAttr("disabled");
         });
-
-        window.$('input[type="date"]').change(function() {
-            this.setAttribute(
-                "data-date",
-                moment(this.value, "YYYY/MM/DD")
-                .format('YYYY/MM/DD')
-            )
-        })
-
-        Date.prototype.toDateInputValue = (function() {
-            var local = new Date(this);
-            local.setMinutes(this.getMinutes() - this.getTimezoneOffset());
-            return local.toJSON().slice(0,10);
-        });
-
-        window.$('input[type="date"]').val(new Date().toDateInputValue());
-        window.$('input[type="date"]').trigger('change');
     }
 
     render() {
@@ -602,8 +624,8 @@ class FCRPLoan extends Component {
                                                 </div>
                                             </div>
                                             <input name="birthDate" 
-                                                id="birthDate" type="date"
-                                                className="form-control"
+                                                id="birthDate" type="text"
+                                                className="form-control date-date-picker"
                                                 date-date=""
                                                 readOnly={!isEditable}
                                                 disabled={!isEditable}
@@ -1099,8 +1121,8 @@ class FCRPLoan extends Component {
                                                         <i className="fa fa-calendar tx-16 lh-0 op-6"></i>
                                                     </div>
                                                 </div>
-                                                <input name="landingDate" id="landingDate" type="date"
-                                                       className="form-control"
+                                                <input name="landingDate" id="landingDate" type="text"
+                                                       className="form-control date-date-picker"
                                                        date-date=""
                                                        readOnly={!isEditable}
                                                        disabled={!isEditable}
@@ -1337,54 +1359,54 @@ class FCRPLoan extends Component {
                                             </label>
                                             <div className="form-group">
                                                 <div className="custom-controls-stacked">
-                                                    <label className="custom-control custom-radio">
+                                                    <label className="custom-control custom-checkbox">
                                                         <input id="credentialAssessment"
-                                                               name="practiceCanada" type="radio"
+                                                               name="practiceCanada" type="checkbox"
                                                                className="custom-control-input"
                                                         />
                                                         <span className="custom-control-label">Credential Assessment</span>
                                                     </label>
                                                 </div>
                                                 <div className="custom-controls-stacked">
-                                                    <label className="custom-control custom-radio">
+                                                    <label className="custom-control custom-checkbox">
                                                         <input id="loanAssistance"
-                                                               name="practiceCanada" type="radio"
+                                                               name="practiceCanada" type="checkbox"
                                                                className="custom-control-input"
                                                         />
                                                         <span className="custom-control-label">Loan Assistance</span> 
                                                     </label>  
                                                 </div>
                                                 <div className="custom-controls-stacked">
-                                                    <label className="custom-control custom-radio">
+                                                    <label className="custom-control custom-checkbox">
                                                         <input id="licesing"
-                                                               name="practiceCanada" type="radio"
+                                                               name="practiceCanada" type="checkbox"
                                                                className="custom-control-input"
                                                         />
                                                         <span className="custom-control-label">Licensing</span>
                                                     </label>
                                                 </div>
                                                 <div className="custom-controls-stacked">
-                                                    <label className="custom-control custom-radio">
+                                                    <label className="custom-control custom-checkbox">
                                                         <input id="practiceMentorship"
-                                                               name="practiceCanada" type="radio"
+                                                               name="practiceCanada" type="checkbox"
                                                                className="custom-control-input"
                                                         />
                                                         <span className="custom-control-label">Mentorship</span>
                                                     </label>
                                                 </div>
                                                 <div className="custom-controls-stacked">
-                                                    <label className="custom-control custom-radio">
+                                                    <label className="custom-control custom-checkbox">
                                                         <input id="tranning"
-                                                               name="practiceCanada" type="radio"
+                                                               name="practiceCanada" type="checkbox"
                                                                className="custom-control-input"
                                                         />
                                                         <span className="custom-control-label">Training</span>
                                                     </label>
                                                 </div>
                                                 <div className="custom-controls-stacked">
-                                                    <label className="custom-control custom-radio">
+                                                    <label className="custom-control custom-checkbox">
                                                         <input id="other"
-                                                               name="practiceCanada" type="radio"
+                                                               name="practiceCanada" type="checkbox"
                                                                className="custom-control-input"
                                                         />
                                                         <span className="custom-control-label">Other</span>
@@ -1617,8 +1639,8 @@ class FCRPLoan extends Component {
                                                     </div>
                                                 </div>
                                                 <input name="englishLanguageAssessment_assessmentDate"
-                                                       id="englishLanguageAssessment_assessmentDate" type="date"
-                                                       className="form-control"
+                                                       id="englishLanguageAssessment_assessmentDate" type="text"
+                                                       className="form-control date-date-picker"
                                                        date-date=""
                                                        readOnly={!isEditable}
                                                        disabled={!isEditable}
@@ -1904,7 +1926,7 @@ class FCRPLoan extends Component {
                                                 <label htmlFor="Signature">Signature</label>
                                             </div>
                                             <div className="form-group col-md-4">
-                                                <input type="date" date-date="" className="form-control" id="signDate" name="SignDate" />
+                                                <input type="text" date-date="" className="form-control date-date-picker" id="signDate" name="SignDate" />
                                                 <label htmlFor="Date">Date</label>
                                             </div>
                                             <div className="col-md-4"></div>
@@ -1944,7 +1966,7 @@ class FCRPLoan extends Component {
                                                 <label htmlFor="Signature">Signature</label>
                                             </div>
                                             <div className="form-group col-md-4">
-                                                <input type="date" date-date="" className="form-control" id="othersignDate" name="OthersignDate" />
+                                                <input type="text" date-date="" className="form-control date-date-picker" id="othersignDate" name="OthersignDate" />
                                                 <label htmlFor="Date">Date</label>
                                             </div>
                                             <div className="col-md-4"></div>

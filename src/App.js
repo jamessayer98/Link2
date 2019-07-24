@@ -56,6 +56,11 @@ import ScrollToTop from './client/utils/ScrollToTop';
 import AppLoading from './client/components/Elements/Loading';
 import store from './client/utils/store';
 import Socket from './client/components/App/socket';
+import SocketNotificationField from './client/components/App/Layouts/SocketNotificationField';
+import SocketNotificationFieldById from './client/components/App/Layouts/SocketNotificationFieldById';
+
+import io from 'socket.io-client';
+import { API_URL } from './client/actions/types';
 
 axios.interceptors.response.use(
   response => {
@@ -118,6 +123,8 @@ class App extends Component {
                 <PrivateRoute exact path='/notifications/add-new-notification' component={AddNewNotification} />
                 <PrivateRoute exact path='/notifications/view/:notificationId' component={ViewNotification} />
                 <PrivateRoute exact path='/messages' component={MessagePage} />
+                <PrivateRoute exact path="/unreadNotifications" component={SocketNotificationField} />
+                <PrivateRoute exact path="/unreadNotifications/:id" component={SocketNotificationFieldById} />
                 <PrivateRoute exact path='/settings/settings' component={Settings} />
                 <PrivateRoute exact path='/settings/update-admin-password' component={UpdatePassword} />
                 <PrivateRoute exact path='/settings/payment' component={Payment} />

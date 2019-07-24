@@ -1,4 +1,4 @@
-const Notification = require('../models/Notification');
+const Occupation = require('../models/Occupation');
 const SocketNotification = require('../models/SocketNotification');
 const Profile = require('../models/Profile');
 const Socket = require('./sockets');
@@ -7,9 +7,8 @@ const Socket = require('./sockets');
  * @returns {res}
  */
 exports.index = async (req, res) => {
-  let {id} = req.query;
-  let response = await Notification.find({ $or:[ {sentBy: id}, {recipients: {$all: [id]}}] }).populate('sentBy');  
-  
+  const response = await Occupation.find();
+  console.log(response);
   return res.json({
     success: true,
     data: response
@@ -23,21 +22,11 @@ exports.index = async (req, res) => {
 exports.store = async (req, res) => {
   let {body} = req;
   const response = await Notification.create(body);
+
   let nofi = Profile.find({_id: body.sentBy}).then((nofi) => {
     let name = nofi[0].firstName + " " + nofi[0].lastName;
-    const socketnotification = {
-      title: body.title,
-      content: body.message,
-      type: "Notification",
-      recipients: body.recipients,
-      sentBy: name,
-      id: response._id,
-      formName: ""
-    };
-    SocketNotification.create(socketnotification);
     Socket.socket('has-new-conversation', '', { id: response._id, to: body.recipients, sentBy: name, content: body.message, title: body.title, type: "Notification", hasNewMessage: true });
   });
-
   
   return res.json({
     success: true,
@@ -64,15 +53,44 @@ exports.edit = async (req, res) => {
  * @description Update the notification resource
  * @returns {res}
  */
-exports.update = async (req, res) => {
-  const {id} = req.params;
-  
-  const response = await Notification.findByIdAndUpdate(id, req.body);
+exports.saveAndUpdate = async (req, res) => {
+  const { credential_assessment, loan_assistance, licensing, other, training, mentorship, organization} = req.body;
+  console.log("-----------------------occupation:", req.body);
+  const response = Occupation.findOne({organization: organization}).then((occupation) => {
+    if (occupation) occupation.updateOne({
+      credential_assessment: credential_assessment,
+      loan_assistance: loan_assistance,
+      licensing: licensing,
+      other: other,
+      training: training,
+      mentorship: mentorship
+    })
+    else new Occupation({
+      credential_assessment: credential_assessment,
+      loan_assistance: loan_assistance,
+      licensing: licensing,
+      other: other,
+      training: training,
+      mentorship: mentorship,
+      organization: organization
+    }).save();
+  })
+  return res.json({
+    success: true,
+    data: {
+      data: response
+    }
+  });
+};
+
+exports.deleteAll = async (req, res) => {
+  const remove = await SocketNotification.find().remove();
+  const response = await SocketNotification.find();
   
   return res.json({
     success: true,
     data: {
-      _id: response._id
+      data: response
     }
   });
 };

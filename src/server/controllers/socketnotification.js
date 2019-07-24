@@ -7,9 +7,19 @@ const Socket = require('./sockets');
  * @returns {res}
  */
 exports.index = async (req, res) => {
-  let {id} = req.query;
-  let response = await SocketNotification.find({ $or:[ {recipients: {$all: [id]}}] });  
-  console.log("getsocketnotification:", response);
+  let {id, type, noti_id} = req.body;
+  let response = [];
+  if (type === "one") {
+    response = await SocketNotification.find({ $or:[ {recipients: {$all: [id]}}] });
+  }
+  else if (type === "all") {
+    response = await SocketNotification.find({ $or:[ {recipients: {$all: [id]}}] });
+    await SocketNotification.find({ $or:[ {recipients: {$all: [id]}}] }).remove();
+  }
+  else {
+    response = await SocketNotification.find({ $or:[ {recipients: {$all: [id]}}] });
+    await SocketNotification.find({_id: noti_id}).remove();
+  }
   return res.json({
     success: true,
     data: response
@@ -56,9 +66,34 @@ exports.edit = async (req, res) => {
  */
 exports.update = async (req, res) => {
   const {_id, id} = req.body;
-  console.log("ssssssssssssssssssssssssssssssSS:", req.body);
-  const remove = await SocketNotification.findOne({_id: req.body._id}).remove();
+  await SocketNotification.findOneAndUpdate({_id: req.body._id}, {isRead: true});
   const response = await SocketNotification.find({ $or:[ {recipients: {$all: [id]}}] });
+  // const remove = await SocketNotification.findOne({_id: req.body._id}).remove();
+ 
+  return res.json({
+    success: true,
+    data: {
+      data: response
+    }
+  });
+};
+
+exports.updateAll = async (req, res) => {
+  const {id} = req.params;
+  await SocketNotification.update({ $or:[ {recipients: {$all: [id]}}] }, {isRead: true}, {multi: true});
+  // const remove = await SocketNotification.findOne({_id: req.body._id}).remove();
+ const response = await SocketNotification.find({ $or:[ {recipients: {$all: [id]}}] });
+  return res.json({
+    success: true,
+    data: {
+      data: response
+    }
+  });
+};
+
+exports.deleteAll = async (req, res) => {
+  const remove = await SocketNotification.find().remove();
+  const response = await SocketNotification.find();
   
   return res.json({
     success: true,
